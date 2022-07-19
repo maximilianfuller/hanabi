@@ -1,4 +1,4 @@
-from card import *
+from logic.card import *
 import unittest
 
 class TestCard(unittest.TestCase):

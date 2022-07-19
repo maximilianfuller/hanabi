@@ -1,7 +1,7 @@
-from deck import Deck
+from logic.deck import Deck
 import unittest
 from collections import defaultdict
-from card import *
+from logic.card import *
 
 class TestDeck(unittest.TestCase):
 	def test_fifty_cards(self):

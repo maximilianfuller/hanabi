@@ -1,7 +1,7 @@
-from card import *
+from logic.card import *
 
 class Clue:
-	def __init__(self, color_or_number, card_indice_set):
+	def __init__(self, color_or_number, card_indice_set, player_index):
 		self._color = color_or_number if isinstance(color_or_number, Color) else None
 		self._number = color_or_number if isinstance(color_or_number, Number) else None
 		self._card_indice_set = card_indice_set.copy()
@@ -44,16 +44,16 @@ class PlayResult:
 		self._is_playable = is_playable
 		self._new_card = new_card
 
-	def get_play():
+	def get_play(self):
 		return self._play
 
-	def get_card():
+	def get_card(self):
 		return self._card
 
-	def get_is_playable():
+	def get_is_playable(self):
 		return self._is_playable
 
-	def get_new_card():
+	def get_new_card(self):
 		return self._new_card
 
 class DiscardResult:
