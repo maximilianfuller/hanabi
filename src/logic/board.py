@@ -87,10 +87,10 @@ class Board():
 			if not matching_cards or matching_cards != move.get_card_indice_set():
 				return False
 		if isinstance(move, Play):
-			if len(self._hands[self._curr_player]) <= move.get_card_index():
+			if len(self._hands[self._curr_player]) <= move.get_card_index() or move.get_card_index() < 0:
 				return False
 		if isinstance(move, Discard):
-			if len(self._hands[self._curr_player]) <= move.get_card_index():
+			if len(self._hands[self._curr_player]) <= move.get_card_index() or move.get_card_index() < 0:
 				return False
 		return True
 

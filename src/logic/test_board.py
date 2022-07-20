@@ -127,7 +127,7 @@ class TestBoard(unittest.TestCase):
 
 	def test_bad_index_invalid_dicard(self):
 		board = Board(Deck(), 4)
-		self.assertFalse(board.process_move(Discard(419191)))
+		self.assertFalse(board.process_move(Discard(-1)))
 
 
 if __name__ == '__main__':
