@@ -53,6 +53,13 @@ class Board():
 	def get_score(self):
 		return sum([c.value if c else 0 for c in self._played_cards.values()])
 
+	# Useful for testing
+	def get_random_valid_clue(self, target_player_index):
+		hand = self._hands[target_player_index]
+		color = hand[0].get_color()
+		matching_indices = set([i for i in range(len(hand)) if hand[i].get_color() == color])
+		return Clue(color, matching_indices, target_player_index)
+
 	def __is_playable(self, card):
 		if not self._played_cards[card.get_color()]:
 			return card.get_number() == Number.ONE
@@ -61,7 +68,29 @@ class Board():
 	def __validate_move(self, move):
 		#TODO
 		if isinstance(move, Clue):
+			# check if we have a clue
 			if self._clue_count <= 0:
+				return False
+			# check if we are not self cluing
+			if self._curr_player == move.get_target_player_index():
+				return False
+			# check if target player exists
+			if move.get_target_player_index() >= self._player_count:
+				return False
+			# Check clued cards are valid
+			hand = self._hands[move.get_target_player_index()]
+			matching_cards = set()
+			if move.get_number():
+				matching_cards = set([i for i in range(len(hand)) if hand[i].get_number() == move.get_number()])
+			elif move.get_color():
+				matching_cards = set([i for i in range(len(hand)) if hand[i].get_color() == move.get_color()])
+			if not matching_cards or matching_cards != move.get_card_indice_set():
+				return False
+		if isinstance(move, Play):
+			if len(self._hands[self._curr_player]) <= move.get_card_index():
+				return False
+		if isinstance(move, Discard):
+			if len(self._hands[self._curr_player]) <= move.get_card_index():
 				return False
 		return True
 

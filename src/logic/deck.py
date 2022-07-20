@@ -9,7 +9,8 @@ class Deck:
 		if not cards:
 			cards = Deck.get_new_sorted_cards()
 			random.shuffle(cards)
-		self._cards = cards
+		# Reverse the list since we pop from the back when we deal
+		self._cards = list(reversed(cards))
 
 	def draw(self):
 		if not self._cards:
@@ -26,7 +27,7 @@ class Deck:
 	@staticmethod
 	def get_new_sorted_cards():
 		cards = []
-		for number in [Number(i) for i in range(5, 0, -1)]:
+		for number in [Number(i) for i in range(1, 6)]:
 			for color in [Color(i) for i in range(1, 6)]:
 				for _ in range(CARD_COUNTS[number]):
 					cards.append(Card(color, number))
