@@ -18,8 +18,9 @@ class Runner:
 		return self._board.get_score()
 
 	def get_board_for_player(self, player_id):
-		# TODO, strip player's card information
-		return copy.copy(self._board)
+		board = copy.copy(self._board)
+		board.remove_hand(player_id)
+		return board
 
 	def __update_players(self):
 		for i in range(len(self._player_list)):

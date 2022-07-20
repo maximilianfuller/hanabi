@@ -129,6 +129,15 @@ class TestBoard(unittest.TestCase):
 		board = Board(Deck(), 4)
 		self.assertFalse(board.process_move(Discard(-1)))
 
+	def test_get_hand(self):
+		board = Board(Deck(Deck.get_new_sorted_cards()), 2)
+		self.assertEqual(board.get_hands()[0][0], Card(Color.RED, Number.ONE))
+
+	def test_hide_hand(self):
+		board = Board(Deck(Deck.get_new_sorted_cards()), 2)
+		board.remove_hand(0)
+		self.assertFalse(0 in board.get_hands())
+
 
 if __name__ == '__main__':
     unittest.main()

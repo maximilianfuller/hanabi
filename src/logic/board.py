@@ -8,7 +8,7 @@ STARTING_LIVES = 3
 class Board():
 	def __init__(self, deck, player_count):
 		self._deck = deck
-		starting_hands = [[self._deck.draw() for _ in range(STARTING_CARDS_FOR_PLAYERS[player_count])] for _ in range(player_count)]
+		starting_hands = {i: [self._deck.draw() for _ in range(STARTING_CARDS_FOR_PLAYERS[player_count])] for i in range(player_count)}
 		self._player_count = player_count
 
 		self._clue_count = STARTING_CLUES
@@ -53,12 +53,19 @@ class Board():
 	def get_score(self):
 		return sum([c.value if c else 0 for c in self._played_cards.values()])
 
+	def get_hands(self):
+		return self._hands.copy()
+
 	# Useful for testing
 	def get_random_valid_clue(self, target_player_index):
 		hand = self._hands[target_player_index]
 		color = hand[0].get_color()
 		matching_indices = set([i for i in range(len(hand)) if hand[i].get_color() == color])
 		return Clue(color, matching_indices, target_player_index)
+
+	# Useful for passing board state to players so they don't see their own hand
+	def remove_hand(self, player_index):
+		del self._hands[player_index]
 
 	def __is_playable(self, card):
 		if not self._played_cards[card.get_color()]:
