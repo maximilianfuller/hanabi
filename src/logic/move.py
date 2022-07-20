@@ -1,10 +1,11 @@
 from logic.card import *
 
 class Clue:
-	def __init__(self, color_or_number, card_indice_set, player_index):
+	def __init__(self, color_or_number, card_indice_set, target_player_index):
 		self._color = color_or_number if isinstance(color_or_number, Color) else None
 		self._number = color_or_number if isinstance(color_or_number, Number) else None
 		self._card_indice_set = card_indice_set.copy()
+		self._target_player_index = target_player_index
 
 	def get_color(self):
 		return self._color
@@ -13,7 +14,10 @@ class Clue:
 		return self._number
 
 	def get_card_indice_set(self):
-		return self._card_cardice_set
+		return self._card_indice_set
+
+	def get_target_player_index(self):
+		return self._target_player_index
 
 class Play:
 	def __init__(self, card_index):
@@ -34,7 +38,7 @@ class ClueResult:
 	def __init__(self, clue):
 		self._clue = clue
 
-	def get_clue():
+	def get_clue(self):
 		return self._clue
 
 class PlayResult:
