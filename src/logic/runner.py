@@ -19,6 +19,7 @@ class Runner:
 
 	def get_board_for_player(self, player_id):
 		board = copy.copy(self._board)
+		# Hide player's own hand
 		board.remove_hand(player_id)
 		return board
 
