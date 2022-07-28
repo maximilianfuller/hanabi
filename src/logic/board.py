@@ -28,6 +28,8 @@ class Board():
 	def process_move(self, move):
 		if not self.__validate_move(move):
 			return False
+		if self._deck.is_empty():
+			self._turns_remaining_after_dry_deck -= 1
 		move_result = self.__get_move_result(move)
 		self.__update_state(move_result)
 		return True
@@ -120,8 +122,6 @@ class Board():
 			self._hands[_curr_player].insert(0, new_card)			
 
 	def __update_state(self, move_result):
-		if self._deck.is_empty():
-			self._turns_remaining_after_dry_deck -= 1
 		if isinstance(move_result, ClueResult):
 			self._clue_count -= 1
 		elif isinstance(move_result, PlayResult):

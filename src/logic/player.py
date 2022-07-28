@@ -9,3 +9,6 @@ class Player:
 
 	def on_board_update(self, board):
 		pass
+
+	def is_cheater(self):
+		return False

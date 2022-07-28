@@ -9,10 +9,11 @@ class TestBoard(unittest.TestCase):
 		board = Board(Deck(), 3)
 		# 35 discards in a row goes through the entire deck
 		for i in range(35):
+			self.assertFalse(board.is_game_over())
 			self.assertTrue(board.process_move(Discard(0)))
-		self.assertFalse(board.is_game_over())
 		# 3 remaining turns ends the game
 		for i in range(3):
+			self.assertFalse(board.is_game_over())
 			self.assertTrue(board.process_move(Discard(0)))
 		self.assertTrue(board.is_game_over())
 		self.assertEqual(board.get_score(), 0)

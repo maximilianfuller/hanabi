@@ -15,14 +15,16 @@ class Runner:
 			if not self._board.process_move(move):
 				raise Exception("player submitted invalid move.")
 			self.__update_players()
+			curr_player_index = (curr_player_index + 1)%len(self._player_list)
 		return self._board.get_score()
 
 	def get_board_for_player(self, player_id):
 		board = copy.copy(self._board)
 		# Hide player's own hand
-		board.remove_hand(player_id)
+		if not self._player_list[player_id].is_cheater():
+			board.remove_hand(player_id)
 		return board
 
 	def __update_players(self):
 		for i in range(len(self._player_list)):
-				self._player_list[i].on_board_update(self.get_board_for_player(i))
+			self._player_list[i].on_board_update(self.get_board_for_player(i))
