@@ -19,7 +19,7 @@ class Runner:
 		return self._board.get_score()
 
 	def get_board_for_player(self, player_id):
-		board = copy.copy(self._board)
+		board = copy.deepcopy(self._board)
 		# Hide player's own hand
 		if not self._player_list[player_id].is_cheater():
 			board.remove_hand(player_id)

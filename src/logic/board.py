@@ -147,7 +147,8 @@ class Board():
 	def __str__(self):
 		out = ""
 		for i in range(self._player_count):
-			out += f'Player {i}: {[str(c) for c in self._hands[i]]}\n'
+			if i in self._hands:
+				out += f'Player {i}: {[str(c) for c in self._hands[i]]}\n'
 		out += (
 		    f'Deck: {self._deck.count()}\n'
 		    f'Clues: {self._clue_count}\n'

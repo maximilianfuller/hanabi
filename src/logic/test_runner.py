@@ -7,10 +7,14 @@ class TestRunner(unittest.TestCase):
 	class CheatingPlayer(Player):
 		def __init__(self, pid):
 			super().__init__(pid)
+			self.play_count = 0
+			self.update_count = 0
 		def play(self):
+			self.play_count += 1
 			return Discard(0)
 		def on_board_update(self, board):
-			self.assertTrue(self.pid not in board.get_hands())
+			self.update_count += 1
+			assert(self.pid not in board.get_hands())
 
 	class HonestPlayer(Player):
 		def __init__(self, pid):
@@ -27,13 +31,20 @@ class TestRunner(unittest.TestCase):
 			return True
 		
 	def test_runner(self):
-		players = [TestRunner.HonestPlayer(i) for i in range(4)]
+		# Two honest, two cheaters.
+		players = [TestRunner.HonestPlayer(i) for i in range(2)]
+		players.extend([TestRunner.CheatingPlayer(i+2) for i in range(2)])
+
 		runner = Runner(players)
 		runner.run()
+		# Deck has 50 - 16 = 34 cards, + 4 rounds after the deck is dry leaves 38 total plays.
+		# We divide this up among the players.
 		self.assertTrue(players[0].play_count == 10)
 		self.assertTrue(players[1].play_count == 10)
 		self.assertTrue(players[2].play_count == 9)
 		self.assertTrue(players[3].play_count == 9)
+		for i in range(4):
+			self.assertTrue(players[i].update_count == 39)
 
 
 
