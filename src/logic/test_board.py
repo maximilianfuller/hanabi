@@ -151,16 +151,16 @@ class TestBoard(unittest.TestCase):
 
 	def test_is_playable(self):
 		board = Board(Deck(), 3)
-		self.assertTrue(board.is_playable(Card(Color.RED, Number.ONE)))
-		self.assertTrue(board.is_playable(Card(Color.WHITE, Number.ONE)))
-		self.assertTrue(board.is_playable(Card(Color.BLUE, Number.ONE)))
-		self.assertTrue(board.is_playable(Card(Color.GREEN, Number.ONE)))
-		self.assertTrue(board.is_playable(Card(Color.YELLOW, Number.ONE)))
-		self.assertFalse(board.is_playable(Card(Color.RED, Number.TWO)))
-		self.assertFalse(board.is_playable(Card(Color.WHITE, Number.TWO)))
-		self.assertFalse(board.is_playable(Card(Color.BLUE, Number.THREE)))
-		self.assertFalse(board.is_playable(Card(Color.GREEN, Number.FOUR)))
-		self.assertFalse(board.is_playable(Card(Color.YELLOW, Number.FIVE)))
+		self.assertTrue(board.is_playable(C("R1")))
+		self.assertTrue(board.is_playable(C("W1")))
+		self.assertTrue(board.is_playable(C("B1")))
+		self.assertTrue(board.is_playable(C("G1")))
+		self.assertTrue(board.is_playable(C("Y1")))
+		self.assertFalse(board.is_playable(C("R2")))
+		self.assertFalse(board.is_playable(C("W2")))
+		self.assertFalse(board.is_playable(C("B3")))
+		self.assertFalse(board.is_playable(C("G4")))
+		self.assertFalse(board.is_playable(C("Y5")))
 
 	def test_is_trash(self):
 		board = Board(Deck(Deck.get_new_sorted_cards()), 2)
@@ -219,6 +219,17 @@ class TestBoard(unittest.TestCase):
 		# yellow fours and fives not in danger since case is hopeless
 		dangers = set([C("W5"), C("B5"), C("G5"), C("B1")])
 		self.assertEqual(board.get_danger_cards(), dangers)
+
+	def test_board_view():
+		board = Board(Deck(), 3)
+		board_view = BoardView(board, 1)
+		self.assertFalse(1 in board_view.get_hands())
+		self.assertFalse(board_view.is_game_over())
+		self.assertEqual(board_view.get_clue_count(), 8)
+		self.assertFalse(board_view.get_random_valid_clue() is None)
+		self.assertTrue(board_view.is_playable(C("W1")))
+		self.assertFalse(board_view.is_trash(C("R1")))
+		self.assertEqual(board_view.get_danger_cards(), set([C("R5"), C("W5"), C("B5"), C("Y5"), C("G5")]))
 
 
 

@@ -208,3 +208,33 @@ class Board():
 
 		)
 		return out
+
+# Board wrapper that hides data from a player
+class BoardView():
+	def __init__(self, board, player_index):
+		self._board = board
+		self._pid = player_index
+
+	def get_hands(self):
+		hands = self._hands.copy()
+		del hands[self._pid]
+		return hands
+
+	def is_game_over(self):
+		return self._board.is_game_over()
+
+	def get_clue_count(self):
+		return self._board.get_clue_count()
+
+	def get_random_valid_clue(self, target_player_index):
+		return self._board.get_random_valid_clue(target_player_index)
+
+	def is_playable(self, card):
+		return self._board.is_playable(card)
+	
+	def is_trash(self, card):
+		return self._board.is_trash(card)
+		
+	def get_danger_cards(self):
+		return self._board.get_danger_cards()
+		
