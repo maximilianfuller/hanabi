@@ -28,7 +28,7 @@ class CheatingPlayer(Player):
 				for c in other_hand:
 					if self.board.is_playable(c):
 						someone_has_something_playable = True
-			if not someone_has_something_playable:
+			if someone_has_something_playable:
 				return self.random_clue()
 
 		# Discard Trash, if possible
@@ -36,8 +36,8 @@ class CheatingPlayer(Player):
 			if self.board.is_trash(hand[i]):
 				return Discard(i)
 
-		danger_cards = self.board.get_danger_cards()
 		# Discard non-danger cards, if possible
+		danger_cards = self.board.get_danger_cards()
 		for i in range(len(hand)):
 			if hand[i] not in danger_cards:
 				return Discard(i)

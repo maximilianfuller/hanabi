@@ -3,7 +3,7 @@ from player.cheating_player import *
 
 ###############################
 # Configurable Params
-NUM_SIMULATIONS = 1
+NUM_SIMULATIONS = 50
 PLAYER_TO_TEST = CheatingPlayer
 PRINT_BOARDs = True
 NUM_PLAYERS = 3
