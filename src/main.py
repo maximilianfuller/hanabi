@@ -1,12 +1,22 @@
 from logic.runner import Runner
-from player.play_player import *
+from player.cheating_player import *
 
-NUM_SIMULATIONS = 10000
+###############################
+# Configurable Params
+NUM_SIMULATIONS = 1
+PLAYER_TO_TEST = CheatingPlayer
+PRINT_BOARDs = True
+NUM_PLAYERS = 3
+###############################
 
 score_sum = 0
+win_count = 0
 for i in range(NUM_SIMULATIONS):
-	players = [PlayPlayer(i) for i in range(3)]
+	players = [PLAYER_TO_TEST(i, NUM_PLAYERS) for i in range(NUM_PLAYERS)]
 	runner = Runner(players)
-	score = runner.run()
+	score = runner.run(should_print_board=PRINT_BOARDs)
 	score_sum += score
-print(f'average game score with 3 players that play the first card: {score_sum/NUM_SIMULATIONS}')
+	if score == 25:
+		win_count += 1
+print(f'average game score: {score_sum/NUM_SIMULATIONS}')
+print(f'average win rate: {win_count/NUM_SIMULATIONS}')

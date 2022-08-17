@@ -19,12 +19,19 @@ class Clue:
 	def get_target_player_index(self):
 		return self._target_player_index
 
+	def __str__(self):
+		color_or_number = self.get_color() if self.get_color else self.get_number()
+		return f"Clue player {self._target_player_index} that {sorted(list(self._card_indice_set))} are {color_or_number}"
+
 class Play:
 	def __init__(self, card_index):
 		self._card_index = card_index
 
 	def get_card_index(self):
 		return self._card_index
+
+	def __str__(self):
+		return f"Play card at index {self._card_index}"
 
 class Discard:
 	def __init__(self, card_index):
@@ -33,6 +40,8 @@ class Discard:
 	def get_card_index(self):
 		return self._card_index 
 
+	def __str__(self):
+		return f"Discard card at index {self._card_index}"
 
 class ClueResult:
 	def __init__(self, clue):

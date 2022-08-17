@@ -1,5 +1,6 @@
 from logic.move import *
 from logic.deck import Deck
+from collections import Counter
 
 STARTING_CARDS_FOR_PLAYERS = {2: 5, 3: 5, 4: 4, 5: 4}
 STARTING_CLUES = 8
@@ -23,6 +24,7 @@ class Board():
 		}
 		self._curr_player = 0
 		self._turns_remaining_after_dry_deck = player_count
+		self._played_and_discarded_cards = []
 
 	# Returns True iff validation succeeds
 	def process_move(self, move):
@@ -69,11 +71,56 @@ class Board():
 	def remove_hand(self, player_index):
 		del self._hands[player_index]
 
-	def __is_playable(self, card):
+	def is_playable(self, card):
 		if not self._played_cards[card.get_color()]:
 			return card.get_number() == Number.ONE
 		return self._played_cards[card.get_color()].value + 1 == card.get_number().value
 	
+	# Returns whether or not a card can never be played in the future (and is thus no longer useful).
+	def is_trash(self, card):
+		if not self._played_cards[card.get_color()]:
+			return False
+		return self._played_cards[card.get_color()].value >= card.get_number().value
+
+	# Returns the set of cards that if discarded would result in the game being unwinnable.
+	def get_danger_cards(self):
+		out = set()
+		out.add(Card(Color.RED, Number.FIVE))
+		out.add(Card(Color.WHITE, Number.FIVE))
+		out.add(Card(Color.BLUE, Number.FIVE))
+		out.add(Card(Color.YELLOW, Number.FIVE))
+		out.add(Card(Color.GREEN, Number.FIVE))
+
+		# Add candidate danger cards
+		for c, count in Counter(self._played_and_discarded_cards).items():
+			if c.get_number() == Number.ONE:
+				if count == 2:
+					out.add(c)
+			elif c.get_number() != Number.FIVE:
+				if count == 1:
+					out.add(c)
+		# Remove played cards, since these are safe.
+		for color, number in self._played_cards.items():
+			if not number:
+				continue
+			for i in range(1, number.value+1):
+				c = Card(color, Number(i))
+				if c in out:
+					out.remove(c)
+		# Remove hopeless cards
+		normal_deck_dist = Counter(Deck.get_new_sorted_cards())
+		for c, count in Counter(self._played_and_discarded_cards).items():
+			played_number = self._played_cards[c.get_color()]
+			is_played = played_number and played_number.value >= c.get_number().value
+			is_exhausted = normal_deck_dist[c] == count
+			if not is_played and is_exhausted:
+				# Remove higher cards of the same color since they are hopeless
+				for i in range(c.get_number().value, 6):
+					hopeless_card = Card(c.get_color(), Number(i))
+					if hopeless_card in out:
+						out.remove(hopeless_card)
+		return out
+
 	def __validate_move(self, move):
 		#TODO
 		if isinstance(move, Clue):
@@ -109,7 +156,7 @@ class Board():
 			move_result = ClueResult(move)
 		elif isinstance(move, Play):
 			card = self._hands[self._curr_player][move.get_card_index()]
-			move_result = PlayResult(move, card, self.__is_playable(card), self._deck.draw())
+			move_result = PlayResult(move, card, self.is_playable(card), self._deck.draw())
 		elif isinstance(move, Discard):
 			card = self._hands[self._curr_player][move.get_card_index()]
 			move_result = DiscardResult(move, card, self._deck.draw())
@@ -117,7 +164,7 @@ class Board():
 
 	def __remove_and_maybe_draw(card_index):
 		del self._hands[_curr_player][card_index]
-		new_card = self.deck.draw()
+		new_card = self._deck.draw()
 		if new_card:
 			self._hands[_curr_player].insert(0, new_card)			
 
@@ -126,6 +173,7 @@ class Board():
 			self._clue_count -= 1
 		elif isinstance(move_result, PlayResult):
 			card = move_result.get_card()
+			self._played_and_discarded_cards.append(card)
 			if move_result.get_is_playable():
 				self._played_cards[card.get_color()] = card.get_number()
 				if card.get_number() == Number.FIVE:
@@ -137,6 +185,7 @@ class Board():
 			if new_card:
 				self._hands[self._curr_player].insert(0, new_card)
 		elif isinstance(move_result, DiscardResult):
+			self._played_and_discarded_cards.append(move_result.get_card())
 			self._clue_count = min(self._clue_count+1, STARTING_CLUES)
 			del self._hands[self._curr_player][move_result.get_discard().get_card_index()]
 			new_card = move_result.get_new_card()
@@ -149,9 +198,13 @@ class Board():
 		for i in range(self._player_count):
 			if i in self._hands:
 				out += f'Player {i}: {[str(c) for c in self._hands[i]]}\n'
+		readable_played_cards = [str(Card(k, v)) for k, v in self._played_cards.items() if v]
 		out += (
+			f'Board: {readable_played_cards}\n'
 		    f'Deck: {self._deck.count()}\n'
 		    f'Clues: {self._clue_count}\n'
-		    f'Lives: {self._life_count}'
+		    f'Lives: {self._life_count}\n'
+			f'Danger Cards: {[str(c) for c in self.get_danger_cards()]}'
+
 		)
 		return out

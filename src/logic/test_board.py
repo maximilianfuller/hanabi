@@ -4,6 +4,14 @@ from logic.card import *
 from logic.board import Board
 from logic.move import *
 
+FIVES = [
+	Card(Color.RED, Number.FIVE), 
+	Card(Color.WHITE, Number.FIVE), 
+	Card(Color.BLUE, Number.FIVE), 
+	Card(Color.GREEN, Number.FIVE), 
+	Card(Color.YELLOW, Number.FIVE)
+]
+
 class TestBoard(unittest.TestCase):
 	def test_out_of_turns_condition(self):
 		board = Board(Deck(), 3)
@@ -22,7 +30,9 @@ class TestBoard(unittest.TestCase):
 		# This deck initially deals out high cards
 		deck = Deck(cards=list(reversed(Deck.get_new_sorted_cards())))
 		board = Board(deck, 3)
+		self.assertFalse(board.is_game_over())
 		self.assertTrue(board.process_move(Play(0)))
+		self.assertFalse(board.is_game_over())
 		self.assertTrue(board.process_move(Play(0)))
 		self.assertFalse(board.is_game_over())
 		self.assertTrue(board.process_move(Play(0)))
@@ -88,7 +98,7 @@ class TestBoard(unittest.TestCase):
 		board = Board(deck, 5)
 		self.assertEqual(deck.count(), 30)
 
-	def test_cant_clue_self_invalid_move(self):
+	def test_cant_clue_self_invalid_clue(self):
 		board = Board(Deck(Deck.get_new_sorted_cards()), 2)
 		# player 0 is first player, can't clue self
 		# note: among dealt sorted cards, first 3 cards are red
@@ -138,6 +148,78 @@ class TestBoard(unittest.TestCase):
 		board = Board(Deck(Deck.get_new_sorted_cards()), 2)
 		board.remove_hand(0)
 		self.assertFalse(0 in board.get_hands())
+
+	def test_is_playable(self):
+		board = Board(Deck(), 3)
+		self.assertTrue(board.is_playable(Card(Color.RED, Number.ONE)))
+		self.assertTrue(board.is_playable(Card(Color.WHITE, Number.ONE)))
+		self.assertTrue(board.is_playable(Card(Color.BLUE, Number.ONE)))
+		self.assertTrue(board.is_playable(Card(Color.GREEN, Number.ONE)))
+		self.assertTrue(board.is_playable(Card(Color.YELLOW, Number.ONE)))
+		self.assertFalse(board.is_playable(Card(Color.RED, Number.TWO)))
+		self.assertFalse(board.is_playable(Card(Color.WHITE, Number.TWO)))
+		self.assertFalse(board.is_playable(Card(Color.BLUE, Number.THREE)))
+		self.assertFalse(board.is_playable(Card(Color.GREEN, Number.FOUR)))
+		self.assertFalse(board.is_playable(Card(Color.YELLOW, Number.FIVE)))
+
+	def test_is_trash(self):
+		board = Board(Deck(Deck.get_new_sorted_cards()), 2)
+		# Play blue one
+		self.assertTrue(board.process_move(Play(0)))
+		self.assertTrue(board.is_trash(Card(Color.RED, Number.ONE)))
+		self.assertFalse(board.is_trash(Card(Color.BLUE, Number.ONE)))
+
+	def test_get_danger_cards_fives(self):
+		board = Board(Deck(), 2)
+		self.assertEqual(board.get_danger_cards(), set(FIVES))
+
+	def test_get_danger_cards_ones_and_twos(self):
+		# H0: R5, R4, R3, R2, R1
+		# H1: Y4, Y4, R4, B1, B1
+		# P0 always plays their last card, P1 always discards their last card.
+		cards = [
+			C("R5"),
+			C("R4"),
+			C("R3"),
+			C("R2"),
+			C("R1"),
+			C("Y4"),
+			C("Y4"),
+			C("R4"),
+			C("B1"),
+			C("B1"),
+		]
+		# Add fillers so game doesn't end. This deck is invalid but this is for testing convenience.
+		for i in range(100):
+			cards.append(C("W5"))
+
+		board = Board(Deck(cards), 2)
+		self.assertTrue(board.process_move(Play(4)))
+		self.assertTrue(board.process_move(Discard(4)))
+		self.assertTrue(board.process_move(Play(4)))
+		self.assertTrue(board.process_move(Discard(4)))
+		dangers = set(FIVES)
+		# blue one is in danger
+		dangers.add(C("B1"))
+		self.assertEqual(board.get_danger_cards(), dangers)
+
+		self.assertTrue(board.process_move(Play(4)))
+		self.assertTrue(board.process_move(Discard(4)))
+		dangers = set(FIVES)
+		# red four is also now in danger
+		dangers.add(C("B1"))
+		dangers.add(C("R4"))
+		self.assertEqual(board.get_danger_cards(), dangers)
+
+		self.assertTrue(board.process_move(Play(4)))
+		self.assertTrue(board.process_move(Discard(4)))
+		self.assertTrue(board.process_move(Play(4)))
+		self.assertTrue(board.process_move(Discard(4)))
+		# red four is played so no longer in danger, red five played so no longer in danger.
+		# yellow fours and fives not in danger since case is hopeless
+		dangers = set([C("W5"), C("B5"), C("G5"), C("B1")])
+		self.assertEqual(board.get_danger_cards(), dangers)
+
 
 
 if __name__ == '__main__':
