@@ -26,13 +26,6 @@ class Runner:
 			print(self._board)
 		return self._board.get_score()
 
-	def get_board_for_player(self, player_id):
-		board = copy.deepcopy(self._board)
-		# Hide player's own hand
-		if not self._player_list[player_id].is_cheater():
-			board.remove_hand(player_id)
-		return board
-
 	def __update_players(self):
 		for i in range(len(self._player_list)):
-			self._player_list[i].on_board_update(self.get_board_for_player(i))
+			self._player_list[i].on_board_update()

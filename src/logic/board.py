@@ -211,13 +211,15 @@ class Board():
 
 # Board wrapper that hides data from a player
 class BoardView():
-	def __init__(self, board, player_index):
+	def __init__(self, board, player_index, is_cheater):
 		self._board = board
 		self._pid = player_index
+		self._is_cheater = is_cheater
 
 	def get_hands(self):
 		hands = self._board.get_hands().copy()
-		del hands[self._pid]
+		if not self._is_cheater:
+			del hands[self._pid]
 		return hands
 
 	def is_game_over(self):
@@ -227,7 +229,7 @@ class BoardView():
 		return self._board.get_clue_count()
 
 	def get_random_valid_clue(self, target_player_index):
-		if target_player_index == self._pid:
+		if not self._is_cheater and target_player_index == self._pid:
 			return None
 		return self._board.get_random_valid_clue(target_player_index)
 

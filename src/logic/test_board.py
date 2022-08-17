@@ -222,8 +222,9 @@ class TestBoard(unittest.TestCase):
 
 	def test_board_view(self):
 		board = Board(Deck(), 3)
-		board_view = BoardView(board, 1)
+		board_view = BoardView(board, 1, False)
 		self.assertFalse(1 in board_view.get_hands())
+		self.assertTrue(0 in board_view.get_hands())
 		self.assertFalse(board_view.is_game_over())
 		self.assertEqual(board_view.get_clue_count(), 8)
 		self.assertTrue(board_view.get_random_valid_clue(1) is None)
@@ -232,7 +233,11 @@ class TestBoard(unittest.TestCase):
 		self.assertFalse(board_view.is_trash(C("R1")))
 		self.assertEqual(board_view.get_danger_cards(), set([C("R5"), C("W5"), C("B5"), C("Y5"), C("G5")]))
 
-
+	def test_board_view_cheater(self):
+		board = Board(Deck(), 3)
+		board_view = BoardView(board, 1, False)
+		self.assertTrue(1 in board_view.get_hands())
+		self.assertFalse(board_view.get_random_valid_clue(1) is None)
 
 if __name__ == '__main__':
     unittest.main()
