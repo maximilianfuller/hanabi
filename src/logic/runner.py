@@ -31,7 +31,7 @@ class Runner:
 		# Hide player's own hand
 		if not self._player_list[player_id].is_cheater():
 			board.remove_hand(player_id)
-		return self._board
+		return board
 
 	def __update_players(self):
 		for i in range(len(self._player_list)):

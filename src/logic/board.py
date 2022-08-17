@@ -60,7 +60,7 @@ class Board():
 	def get_hands(self):
 		return self._hands.copy()
 
-	# Useful for testing
+	# Useful for testing and cheating bots.
 	def get_random_valid_clue(self, target_player_index):
 		hand = self._hands[target_player_index]
 		color = hand[0].get_color()
