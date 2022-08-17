@@ -1,7 +1,7 @@
 from logic.deck import Deck
 import unittest
 from logic.card import *
-from logic.board import Board
+from logic.board import *
 from logic.move import *
 
 FIVES = [
@@ -220,13 +220,14 @@ class TestBoard(unittest.TestCase):
 		dangers = set([C("W5"), C("B5"), C("G5"), C("B1")])
 		self.assertEqual(board.get_danger_cards(), dangers)
 
-	def test_board_view():
+	def test_board_view(self):
 		board = Board(Deck(), 3)
 		board_view = BoardView(board, 1)
 		self.assertFalse(1 in board_view.get_hands())
 		self.assertFalse(board_view.is_game_over())
 		self.assertEqual(board_view.get_clue_count(), 8)
-		self.assertFalse(board_view.get_random_valid_clue() is None)
+		self.assertTrue(board_view.get_random_valid_clue(1) is None)
+		self.assertFalse(board_view.get_random_valid_clue(0) is None)
 		self.assertTrue(board_view.is_playable(C("W1")))
 		self.assertFalse(board_view.is_trash(C("R1")))
 		self.assertEqual(board_view.get_danger_cards(), set([C("R5"), C("W5"), C("B5"), C("Y5"), C("G5")]))

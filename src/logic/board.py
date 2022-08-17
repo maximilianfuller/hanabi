@@ -216,7 +216,7 @@ class BoardView():
 		self._pid = player_index
 
 	def get_hands(self):
-		hands = self._hands.copy()
+		hands = self._board.get_hands().copy()
 		del hands[self._pid]
 		return hands
 
@@ -227,6 +227,8 @@ class BoardView():
 		return self._board.get_clue_count()
 
 	def get_random_valid_clue(self, target_player_index):
+		if target_player_index == self._pid:
+			return None
 		return self._board.get_random_valid_clue(target_player_index)
 
 	def is_playable(self, card):
