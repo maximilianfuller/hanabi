@@ -1,4 +1,4 @@
-from logic.board import Board
+from logic.board import *
 from logic.deck import Deck
 import copy
 
@@ -8,6 +8,9 @@ class Runner:
 		self._board = Board(Deck(), len(self._player_list))
 
 	def run(self, should_print_board=False):
+		for i in range(len(self._player_list)):
+			self._player_list[i].init_board_view(BoardView(self._board, i, self._player_list[i].is_cheater()))
+
 		curr_player_index = 0
 		self.__update_players()
 		while not self._board.is_game_over():

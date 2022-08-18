@@ -235,7 +235,7 @@ class TestBoard(unittest.TestCase):
 
 	def test_board_view_cheater(self):
 		board = Board(Deck(), 3)
-		board_view = BoardView(board, 1, False)
+		board_view = BoardView(board, 1, True)
 		self.assertTrue(1 in board_view.get_hands())
 		self.assertFalse(board_view.get_random_valid_clue(1) is None)
 

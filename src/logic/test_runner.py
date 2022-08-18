@@ -12,9 +12,9 @@ class TestRunner(unittest.TestCase):
 		def play(self):
 			self.play_count += 1
 			return Discard(0)
-		def on_board_update(self, board):
+		def on_board_update(self):
 			self.update_count += 1
-			assert(self.pid not in board.get_hands())
+			assert(self.pid not in self.board_view.get_hands())
 
 	class HonestPlayer(Player):
 		def __init__(self, pid):
@@ -24,9 +24,9 @@ class TestRunner(unittest.TestCase):
 		def play(self):
 			self.play_count += 1
 			return Discard(0)
-		def on_board_update(self, board):
+		def on_board_update(self):
 			self.update_count += 1
-			assert(self.pid in board.get_hands())
+			assert(self.pid in self.board_view.get_hands())
 		def is_cheater(self):
 			return True
 		

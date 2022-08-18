@@ -1,11 +1,13 @@
 from logic.runner import Runner
 from player.cheating_player import *
+from player.play_player import *
+from player.discard_player import *
 
 ###############################
 # Configurable Params
-NUM_SIMULATIONS = 10000
+NUM_SIMULATIONS = 1
 PLAYER_TO_TEST = CheatingPlayer
-PRINT_BOARDs = False
+PRINT_BOARDs = True
 NUM_PLAYERS = 3
 ###############################
 
