@@ -5,8 +5,8 @@ from logic.move import *
 
 class TestRunner(unittest.TestCase):
 	class CheatingPlayer(Player):
-		def __init__(self, pid):
-			super().__init__(pid)
+		def __init__(self, pid, num_players):
+			super().__init__(pid, num_players)
 			self.play_count = 0
 			self.update_count = 0
 		def play(self):
@@ -17,8 +17,8 @@ class TestRunner(unittest.TestCase):
 			assert(self.pid not in self.board_view.get_hands())
 
 	class HonestPlayer(Player):
-		def __init__(self, pid):
-			super().__init__(pid)
+		def __init__(self, pid, num_players):
+			super().__init__(pid, num_players)
 			self.play_count = 0
 			self.update_count = 0
 		def play(self):
@@ -32,8 +32,8 @@ class TestRunner(unittest.TestCase):
 		
 	def test_runner(self):
 		# Two honest, two cheaters.
-		players = [TestRunner.HonestPlayer(i) for i in range(2)]
-		players.extend([TestRunner.CheatingPlayer(i+2) for i in range(2)])
+		players = [TestRunner.HonestPlayer(i, 4) for i in range(2)]
+		players.extend([TestRunner.CheatingPlayer(i+2, 4) for i in range(2)])
 
 		runner = Runner(players)
 		runner.run()
