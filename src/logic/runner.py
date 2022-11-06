@@ -18,11 +18,12 @@ class Runner:
 			move = self._player_list[curr_player_index].play()
 			if should_print_board:
 				print(self._board)
-				print(f"Current Player: {curr_player_index}")
-				print(move)
-				print()
 			if not self._board.process_move(move):
-				raise Exception("player submitted invalid move.")
+				raise Exception(f'player {curr_player_index} submitted invalid move: {move}')
+			if should_print_board:
+				print()
+				print(f'Player {curr_player_index} {self._board.get_last_move()}')
+				print()
 			self.__update_players()
 			curr_player_index = (curr_player_index + 1)%len(self._player_list)
 		if should_print_board:

@@ -20,8 +20,8 @@ class Clue:
 		return self._target_player_index
 
 	def __str__(self):
-		color_or_number = self.get_color() if self.get_color else self.get_number()
-		return f"Clue player {self._target_player_index} that {sorted(list(self._card_indice_set))} are {color_or_number}"
+		color_or_number = self.get_color() if self.get_color() else self.get_number()
+		return f"clues player {self._target_player_index} that {sorted(list(self._card_indice_set))} are {color_or_number}"
 
 class Play:
 	def __init__(self, card_index):
@@ -31,7 +31,7 @@ class Play:
 		return self._card_index
 
 	def __str__(self):
-		return f"Play card at index {self._card_index}"
+		return f"plays card at index {self._card_index}"
 
 class Discard:
 	def __init__(self, card_index):
@@ -41,45 +41,4 @@ class Discard:
 		return self._card_index 
 
 	def __str__(self):
-		return f"Discard card at index {self._card_index}"
-
-class ClueResult:
-	def __init__(self, clue):
-		self._clue = clue
-
-	def get_clue(self):
-		return self._clue
-
-class PlayResult:
-	def __init__(self, play, card, is_playable, new_card):
-		self._play = play
-		self._card = card
-		self._is_playable = is_playable
-		self._new_card = new_card
-
-	def get_play(self):
-		return self._play
-
-	def get_card(self):
-		return self._card
-
-	def get_is_playable(self):
-		return self._is_playable
-
-	def get_new_card(self):
-		return self._new_card
-
-class DiscardResult:
-	def __init__(self, discard, card, new_card):
-		self._discard = discard
-		self._card = card
-		self._new_card = new_card
-
-	def get_discard(self):
-		return self._discard
-
-	def get_card(self):
-		return self._card
-
-	def get_new_card(self):
-		return self._new_card
+		return f"discards card at index {self._card_index}"

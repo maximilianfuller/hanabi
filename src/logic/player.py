@@ -1,15 +1,16 @@
 from logic.move import *
 
 class Player:
-	# pid is a number in [0, # of players), so this player can identify itself and its 
-	# position relative to other players. player_count is the number of players
-	def __init__(self, pid, player_count):
+	# pid is a number in [0, num_players), so this player can identify itself and its 
+	# position relative to other players.
+	def __init__(self, pid, num_players):
 		self.pid = pid
-		self.player_count = player_count
+		self.num_players = num_players
 
 	# Called at init time to notify the player of the board view used during the entire game.
 	def init_board_view(self, board_view):
 		self.board_view = board_view
+		self.player_count = board_view.get_player_count()
 
 	# Returns either a Play, Discard, or Clue. Called when it is the players turn to play.
 	def play(self):

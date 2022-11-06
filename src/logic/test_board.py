@@ -13,6 +13,9 @@ FIVES = [
 ]
 
 class TestBoard(unittest.TestCase):
+	def test_get_player_count(self):
+		self.assertEqual(Board(Deck(), 3).get_player_count(), 3)
+
 	def test_out_of_turns_condition(self):
 		board = Board(Deck(), 3)
 		# 35 discards in a row goes through the entire deck
@@ -144,11 +147,6 @@ class TestBoard(unittest.TestCase):
 		board = Board(Deck(Deck.get_new_sorted_cards()), 2)
 		self.assertEqual(board.get_hands()[0][0], Card(Color.RED, Number.ONE))
 
-	def test_hide_hand(self):
-		board = Board(Deck(Deck.get_new_sorted_cards()), 2)
-		board.remove_hand(0)
-		self.assertFalse(0 in board.get_hands())
-
 	def test_is_playable(self):
 		board = Board(Deck(), 3)
 		self.assertTrue(board.is_playable(C("R1")))
@@ -223,6 +221,7 @@ class TestBoard(unittest.TestCase):
 	def test_board_view(self):
 		board = Board(Deck(), 3)
 		board_view = BoardView(board, 1, False)
+		self.assertEqual(board_view.get_player_count(), 3)
 		self.assertFalse(1 in board_view.get_hands())
 		self.assertTrue(0 in board_view.get_hands())
 		self.assertFalse(board_view.is_game_over())
@@ -232,6 +231,7 @@ class TestBoard(unittest.TestCase):
 		self.assertTrue(board_view.is_playable(C("W1")))
 		self.assertFalse(board_view.is_trash(C("R1")))
 		self.assertEqual(board_view.get_danger_cards(), set([C("R5"), C("W5"), C("B5"), C("Y5"), C("G5")]))
+		self.assertEqual(board_view.get_last_move(), None)
 
 	def test_board_view_cheater(self):
 		board = Board(Deck(), 3)

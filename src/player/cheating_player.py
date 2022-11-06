@@ -3,9 +3,6 @@ from logic.move import *
 from collections import Counter
 
 class CheatingPlayer(Player):
-	def __init__(self, pid, player_count):
-		super().__init__(pid, player_count)
-		self.player_count = player_count
 	def is_cheater(self):
 		return True
 
@@ -17,7 +14,7 @@ class CheatingPlayer(Player):
 				return Play(i)
 
 		# Clue if clues are available to kill time
-		# (as long as someone as something playable)
+		# (as long as someone has something playable)
 		if self.board_view.get_clue_count() > 0:
 			someone_has_something_playable = False
 			for i in range(self.player_count):

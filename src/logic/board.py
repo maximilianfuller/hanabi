@@ -25,6 +25,7 @@ class Board():
 		self._curr_player = 0
 		self._turns_remaining_after_dry_deck = player_count
 		self._played_and_discarded_cards = []
+		self._moves = []
 
 	# Returns True iff validation succeeds
 	def process_move(self, move):
@@ -32,8 +33,7 @@ class Board():
 			return False
 		if self._deck.is_empty():
 			self._turns_remaining_after_dry_deck -= 1
-		move_result = self.__get_move_result(move)
-		self.__update_state(move_result)
+		self.__update_state(move)
 		return True
 
 	def is_game_over(self):
@@ -51,6 +51,9 @@ class Board():
 
 		return False
 
+	def get_player_count(self):
+		return len(self._hands)
+
 	def get_clue_count(self):
 		return self._clue_count
 
@@ -60,16 +63,17 @@ class Board():
 	def get_hands(self):
 		return self._hands.copy()
 
+	def get_last_move(self):
+		if self._moves:
+			return self._moves[-1]
+		return None
+
 	# Useful for testing and cheating bots.
 	def get_random_valid_clue(self, target_player_index):
 		hand = self._hands[target_player_index]
 		color = hand[0].get_color()
 		matching_indices = set([i for i in range(len(hand)) if hand[i].get_color() == color])
 		return Clue(color, matching_indices, target_player_index)
-
-	# Useful for passing board state to players so they don't see their own hand
-	def remove_hand(self, player_index):
-		del self._hands[player_index]
 
 	def is_playable(self, card):
 		if not self._played_cards[card.get_color()]:
@@ -122,7 +126,8 @@ class Board():
 		return out
 
 	def __validate_move(self, move):
-		#TODO
+		if not move:
+			return False
 		if isinstance(move, Clue):
 			# check if we have a clue
 			if self._clue_count <= 0:
@@ -148,19 +153,7 @@ class Board():
 		if isinstance(move, Discard):
 			if len(self._hands[self._curr_player]) <= move.get_card_index() or move.get_card_index() < 0:
 				return False
-		return True
-
-	def __get_move_result(self, move):
-		move_result = None
-		if isinstance(move, Clue):
-			move_result = ClueResult(move)
-		elif isinstance(move, Play):
-			card = self._hands[self._curr_player][move.get_card_index()]
-			move_result = PlayResult(move, card, self.is_playable(card), self._deck.draw())
-		elif isinstance(move, Discard):
-			card = self._hands[self._curr_player][move.get_card_index()]
-			move_result = DiscardResult(move, card, self._deck.draw())
-		return move_result
+		return True		
 
 	def __remove_and_maybe_draw(card_index):
 		del self._hands[_curr_player][card_index]
@@ -168,30 +161,32 @@ class Board():
 		if new_card:
 			self._hands[_curr_player].insert(0, new_card)			
 
-	def __update_state(self, move_result):
-		if isinstance(move_result, ClueResult):
+	def __update_state(self, move):
+		if isinstance(move, Clue):
 			self._clue_count -= 1
-		elif isinstance(move_result, PlayResult):
-			card = move_result.get_card()
+		elif isinstance(move, Play):
+			card = self._hands[self._curr_player][move.get_card_index()]
 			self._played_and_discarded_cards.append(card)
-			if move_result.get_is_playable():
+			if self.is_playable(card):
 				self._played_cards[card.get_color()] = card.get_number()
 				if card.get_number() == Number.FIVE:
 					self._clue_count = min(self._clue_count+1, STARTING_CLUES)
 			else:
 				self._life_count -= 1
-			del self._hands[self._curr_player][move_result.get_play().get_card_index()]
-			new_card = move_result.get_new_card()
+			del self._hands[self._curr_player][move.get_card_index()]
+			new_card = self._deck.draw()
 			if new_card:
 				self._hands[self._curr_player].insert(0, new_card)
-		elif isinstance(move_result, DiscardResult):
-			self._played_and_discarded_cards.append(move_result.get_card())
+		elif isinstance(move, Discard):
+			card = self._hands[self._curr_player][move.get_card_index()]
+			self._played_and_discarded_cards.append(card)
 			self._clue_count = min(self._clue_count+1, STARTING_CLUES)
-			del self._hands[self._curr_player][move_result.get_discard().get_card_index()]
-			new_card = move_result.get_new_card()
+			del self._hands[self._curr_player][move.get_card_index()]
+			new_card = self._deck.draw()
 			if new_card:
 				self._hands[self._curr_player].insert(0, new_card)
 		self._curr_player = (self._curr_player + 1) % self._player_count
+		self._moves.append(move)
 		
 	def __str__(self):
 		out = ""
@@ -222,8 +217,14 @@ class BoardView():
 			del hands[self._pid]
 		return hands
 
+	def get_last_move(self):
+		return self._board.get_last_move()
+
 	def is_game_over(self):
 		return self._board.is_game_over()
+
+	def get_player_count(self):
+		return self._board.get_player_count()
 
 	def get_clue_count(self):
 		return self._board.get_clue_count()
