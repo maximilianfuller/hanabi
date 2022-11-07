@@ -23,6 +23,12 @@ class Clue:
 		color_or_number = self.get_color() if self.get_color() else self.get_number()
 		return f"clues player {self._target_player_index} that {sorted(list(self._card_indice_set))} are {color_or_number}"
 
+	def __eq__(self, other):
+		return  (self.get_color() == other.get_color() and 
+			self.get_number() == other.get_number() and 
+			self.get_card_indice_set() == other.get_card_indice_set() and
+			self.get_target_player_index() == other.get_target_player_index())
+
 	@staticmethod
 	def get_clue_for_color(hand, color, target_player_index):
 		card_indice_set = set([i for i in range(len(hand)) if hand[i].get_color() == color])

@@ -14,7 +14,6 @@ class Runner:
 		curr_player_index = 0
 		self.__update_players()
 		while not self._board.is_game_over():
-
 			move = self._player_list[curr_player_index].play()
 			if should_print_board:
 				print(self._board)
@@ -25,7 +24,7 @@ class Runner:
 				assert(player == curr_player_index)
 				drawString = ""
 				if new_draw:
-					drawString = f' and drew {str(new_draw)}'
+					drawString = f' and draws {str(new_draw)}'
 				print()
 				print(f'Player {curr_player_index} {move}{drawString}')
 				print()
