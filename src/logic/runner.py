@@ -21,8 +21,13 @@ class Runner:
 			if not self._board.process_move(move):
 				raise Exception(f'player {curr_player_index} submitted invalid move: {move}')
 			if should_print_board:
+				player, move, new_draw = self._board.get_last_action()
+				assert(player == curr_player_index)
+				drawString = ""
+				if new_draw:
+					drawString = f' and drew {str(new_draw)}'
 				print()
-				print(f'Player {curr_player_index} {self._board.get_last_move()}')
+				print(f'Player {curr_player_index} {move}{drawString}')
 				print()
 			self.__update_players()
 			curr_player_index = (curr_player_index + 1)%len(self._player_list)

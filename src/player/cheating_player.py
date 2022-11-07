@@ -1,6 +1,8 @@
 from logic.player import Player
 from logic.move import *
 from collections import Counter
+from logic.runner import Runner
+
 
 class CheatingPlayer(Player):
 	def is_cheater(self):

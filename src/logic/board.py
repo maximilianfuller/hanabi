@@ -26,6 +26,8 @@ class Board():
 		self._turns_remaining_after_dry_deck = player_count
 		self._played_and_discarded_cards = []
 		self._moves = []
+		# list of draws, None if nothing was drawn for that turn
+		self._draws = []
 
 	# Returns True iff validation succeeds
 	def process_move(self, move):
@@ -63,10 +65,15 @@ class Board():
 	def get_hands(self):
 		return self._hands.copy()
 
-	def get_last_move(self):
-		if self._moves:
-			return self._moves[-1]
-		return None
+	# Returns a tuple (last_player_id, last_move, new_card_drawn), new_card_drawn may be None
+	# if the last move was a clue, or if we are at the end of the game
+	def get_last_action(self):
+		if not self._moves:
+			return (None, None, None)
+		last_move = self._moves[-1]
+		last_draw = self._draws[-1]
+		last_pid = (self._curr_player-1)%self.get_player_count()
+		return (last_pid, last_move, last_draw)
 
 	# Useful for testing and cheating bots.
 	def get_random_valid_clue(self, target_player_index):
@@ -153,15 +160,10 @@ class Board():
 		if isinstance(move, Discard):
 			if len(self._hands[self._curr_player]) <= move.get_card_index() or move.get_card_index() < 0:
 				return False
-		return True		
-
-	def __remove_and_maybe_draw(card_index):
-		del self._hands[_curr_player][card_index]
-		new_card = self._deck.draw()
-		if new_card:
-			self._hands[_curr_player].insert(0, new_card)			
+		return True				
 
 	def __update_state(self, move):
+		new_card = None
 		if isinstance(move, Clue):
 			self._clue_count -= 1
 		elif isinstance(move, Play):
@@ -187,6 +189,7 @@ class Board():
 				self._hands[self._curr_player].insert(0, new_card)
 		self._curr_player = (self._curr_player + 1) % self._player_count
 		self._moves.append(move)
+		self._draws.append(new_card)
 		
 	def __str__(self):
 		out = ""
@@ -212,13 +215,16 @@ class BoardView():
 		self._is_cheater = is_cheater
 
 	def get_hands(self):
-		hands = self._board.get_hands().copy()
+		hands = self._board.get_hands()
 		if not self._is_cheater:
 			del hands[self._pid]
 		return hands
 
-	def get_last_move(self):
-		return self._board.get_last_move()
+	def get_last_action(self):
+		pid, move, card = self._board.get_last_action()
+		if not self._is_cheater and self._pid == pid:
+			return (pid, move, None)
+		return pid, move, card
 
 	def is_game_over(self):
 		return self._board.is_game_over()
