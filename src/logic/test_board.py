@@ -224,6 +224,8 @@ class TestBoard(unittest.TestCase):
 		# yellow fours and fives not in danger since case is hopeless
 		dangers = set([C("W5"), C("B5"), C("G5"), C("B1")])
 		self.assertEqual(board.get_danger_cards(), dangers)
+		self.assertEqual(board.get_hopeless_cards(), set([C("Y4")]))
+
 
 	def test_board_view(self):
 		board = Board(Deck(), 3)

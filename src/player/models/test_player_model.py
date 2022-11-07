@@ -8,26 +8,27 @@ import unittest
 
 class TestPlayerModel(unittest.TestCase):
 	# use a cheating player since it is a simple ai that performs clues, discards and plays
-	def test_full_game(self):
+	def test_make_hands_align_over_full_game(self):
 		num_player = 5
 		players = [CheatingPlayerWithPlayerModel(i, num_player) for i in range(num_player)]
 		runner = Runner(players)
 		score = runner.run()
 
-	def test_get_clue(self):
+	def test_get_color_clue(self):
 		mockBoardView = MockBoardView(C("B1"))
 		model = PlayerModel(0,[C("R1"), C("B1"), C("B5")])
-		self.assertEqual(model.find_new_clue_to_give(mockBoardView), Clue(Color.BLUE, set([1, 2]), 0))
+		self.assertEqual(model.find_new_play_clue_to_give(mockBoardView), Clue(Color.BLUE, set([1, 2]), 0))
 
-	def test_get_number(self):
+	def test_get_number_clue(self):
 		mockBoardView = MockBoardView(C("R3"))
 		model = PlayerModel(0,[C("R1"), C("R3"), C("B5")])
-		self.assertEqual(model.find_new_clue_to_give(mockBoardView), Clue(Number.THREE, set([1]), 0))
+		self.assertEqual(model.find_new_play_clue_to_give(mockBoardView), Clue(Number.THREE, set([1]), 0))
 
 	def test_not_clueable(self):
 		mockBoardView = MockBoardView(C("B5"))
 		model = PlayerModel(0,[C("B1"), C("R5"), C("B5")])
-		self.assertEqual(model.find_new_clue_to_give(mockBoardView), None)
+		self.assertEqual(model.find_new_play_clue_to_give(mockBoardView), None)
+
 
 
 class MockBoardView(BoardView):

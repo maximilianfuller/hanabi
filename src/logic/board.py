@@ -132,6 +132,25 @@ class Board():
 						out.remove(hopeless_card)
 		return out
 
+	# Returns the set of cards that can no longer be played and prohibit victory in the game
+	def get_hopeless_cards(self):
+		out = set()
+		for c, count in Counter(self._played_and_discarded_cards).items():
+			played_number = self._played_cards[c.get_color()]
+			is_played = played_number and played_number.value >= c.get_number().value
+			if is_played:
+				continue
+			if c.get_number() == Number.ONE:
+				if count == 3:
+					out.add(c)
+			elif c.get_number() != Number.FIVE:
+				if count == 2:
+					out.add(c)
+			else:
+				if count == 1:
+					out.add(c)
+		return out
+
 	def __validate_move(self, move):
 		if not move:
 			return False
@@ -202,7 +221,8 @@ class Board():
 		    f'Deck: {self._deck.count()}\n'
 		    f'Clues: {self._clue_count}\n'
 		    f'Lives: {self._life_count}\n'
-			f'Danger Cards: {[str(c) for c in self.get_danger_cards()]}'
+			f'Danger Cards: {[str(c) for c in self.get_danger_cards()]}\n'
+			f'Hopeless Cards: {[str(c) for c in self.get_hopeless_cards()]}'
 
 		)
 		return out

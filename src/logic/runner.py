@@ -12,6 +12,7 @@ class Runner:
 			self._player_list[i].init_board_view(BoardView(self._board, i, self._player_list[i].is_cheater()))
 
 		curr_player_index = 0
+		move_number = 1
 		self.__update_players()
 		while not self._board.is_game_over():
 			move = self._player_list[curr_player_index].play()
@@ -26,10 +27,12 @@ class Runner:
 				if new_draw:
 					drawString = f' and draws {str(new_draw)}'
 				print()
+				print(f'MOVE NUMBER {move_number}')
 				print(f'Player {curr_player_index} {move}{drawString}')
 				print()
 			self.__update_players()
 			curr_player_index = (curr_player_index + 1)%len(self._player_list)
+			move_number += 1
 		if should_print_board:
 			print(self._board)
 		return self._board.get_score()
