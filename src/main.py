@@ -6,9 +6,9 @@ from player.alpha_player import *
 
 ###############################
 # Configurable Params
-NUM_SIMULATIONS = 1
+NUM_SIMULATIONS = 10000
 PLAYER_TO_TEST = AlphaPlayer
-PRINT_BOARDS = True
+PRINT_BOARDS = False
 NUM_PLAYERS = 3
 ###############################
 

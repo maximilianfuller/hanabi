@@ -29,20 +29,30 @@ class AlphaPlayer(Player):
 
 		# Otherwise try to clue
 		if self.board_view.get_clue_count() > 0:
-			# First clue any fives (invest in fives early!)
+
+			already_clued_set = set()
+			for i in range(self.num_players):
+				if i == self.pid:
+					continue
+				already_clued_set.update(self.player_models[i].get_clued_cards())
+
+
+
+			# Clue playable cards
+			for i in range(self.num_players):
+				if i == self.pid:
+					continue
+				clue = self.player_models[i].find_new_play_clue_to_give(self.board_view, already_clued_set)
+				if clue:
+					return clue
+			# Clue fives
 			for i in range(self.num_players):
 				if i == self.pid:
 					continue
 				clue = self.player_models[i].find_new_five_clue_to_give()
 				if clue:
 					return clue
-			# Next clue playable cards
-			for i in range(self.num_players):
-				if i == self.pid:
-					continue
-				clue = self.player_models[i].find_new_play_clue_to_give(self.board_view)
-				if clue:
-					return clue
+			
 
 		# Otherwise discard, avoiding fives
 		discard_index = STARTING_CARDS_FOR_PLAYERS[self.num_players]-1
