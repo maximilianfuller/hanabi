@@ -17,17 +17,17 @@ class TestPlayerModel(unittest.TestCase):
 	def test_get_color_clue(self):
 		mockBoardView = MockBoardView(C("B1"))
 		model = PlayerModel(0,[C("R1"), C("B1"), C("B5")])
-		self.assertEqual(model.find_new_play_clue_to_give(mockBoardView), Clue(Color.BLUE, set([1, 2]), 0))
+		self.assertEqual(model.find_new_play_clue_to_give(mockBoardView, set()), Clue(Color.BLUE, set([1, 2]), 0))
 
 	def test_get_number_clue(self):
 		mockBoardView = MockBoardView(C("R3"))
 		model = PlayerModel(0,[C("R1"), C("R3"), C("B5")])
-		self.assertEqual(model.find_new_play_clue_to_give(mockBoardView), Clue(Number.THREE, set([1]), 0))
+		self.assertEqual(model.find_new_play_clue_to_give(mockBoardView, set()), Clue(Number.THREE, set([1]), 0))
 
 	def test_not_clueable(self):
 		mockBoardView = MockBoardView(C("B5"))
 		model = PlayerModel(0,[C("B1"), C("R5"), C("B5")])
-		self.assertEqual(model.find_new_play_clue_to_give(mockBoardView), None)
+		self.assertEqual(model.find_new_play_clue_to_give(mockBoardView, set()), None)
 
 
 
