@@ -32,23 +32,17 @@ class AlphaPlayer(Player):
 
 			already_clued_set = set()
 			for i in range(self.num_players):
-				if i == self.pid:
-					continue
 				already_clued_set.update(self.player_models[i].get_clued_cards())
 
-
-
+			#prefer to clue next player
+			player_rotation = [i%self.num_players for i in range(self.pid+1, self.num_players+self.pid)]
 			# Clue playable cards
-			for i in range(self.num_players):
-				if i == self.pid:
-					continue
+			for i in player_rotation:
 				clue = self.player_models[i].find_new_play_clue_to_give(self.board_view, already_clued_set)
 				if clue:
 					return clue
 			# Clue fives
-			for i in range(self.num_players):
-				if i == self.pid:
-					continue
+			for i in player_rotation:
 				clue = self.player_models[i].find_new_five_clue_to_give()
 				if clue:
 					return clue

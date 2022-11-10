@@ -27,7 +27,7 @@ class TestPlayerModel(unittest.TestCase):
 	def test_not_clueable(self):
 		mockBoardView = MockBoardView(C("B5"))
 		model = PlayerModel(0,[C("B1"), C("R5"), C("B5")])
-		self.assertEqual(model.find_new_play_clue_to_give(mockBoardView, set()), None)
+		self.assertEqual(model.find_new_play_clue_to_give(mockBoardView, set()), None)		
 
 
 

@@ -33,12 +33,16 @@ class TestBoard(unittest.TestCase):
 		# This deck initially deals out high cards
 		deck = Deck(cards=list(reversed(Deck.get_new_sorted_cards())))
 		board = Board(deck, 3)
+		self.assertEqual(board.get_life_count(), 3)
 		self.assertFalse(board.is_game_over())
 		self.assertTrue(board.process_move(Play(0)))
+		self.assertEqual(board.get_life_count(), 2)
 		self.assertFalse(board.is_game_over())
 		self.assertTrue(board.process_move(Play(0)))
+		self.assertEqual(board.get_life_count(), 1)
 		self.assertFalse(board.is_game_over())
 		self.assertTrue(board.process_move(Play(0)))
+		self.assertEqual(board.get_life_count(), 0)
 		self.assertTrue(board.is_game_over())
 
 	def test_win_condition(self):
@@ -235,6 +239,7 @@ class TestBoard(unittest.TestCase):
 		self.assertTrue(0 in board_view.get_hands())
 		self.assertFalse(board_view.is_game_over())
 		self.assertEqual(board_view.get_clue_count(), 8)
+		self.assertEqual(board_view.get_life_count(), 3)
 		self.assertTrue(board_view.get_random_valid_clue(1) is None)
 		self.assertFalse(board_view.get_random_valid_clue(0) is None)
 		self.assertTrue(board_view.is_playable(C("W1")))

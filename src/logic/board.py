@@ -62,6 +62,9 @@ class Board():
 	def get_score(self):
 		return sum([c.value if c else 0 for c in self._played_cards.values()])
 
+	def get_life_count(self):
+		return self._life_count
+
 	def get_hands(self):
 		return self._hands.copy()
 
@@ -221,6 +224,7 @@ class Board():
 		    f'Deck: {self._deck.count()}\n'
 		    f'Clues: {self._clue_count}\n'
 		    f'Lives: {self._life_count}\n'
+		    f'Score: {self.get_score()}\n'
 			f'Danger Cards: {[str(c) for c in self.get_danger_cards()]}\n'
 			f'Hopeless Cards: {[str(c) for c in self.get_hopeless_cards()]}'
 
@@ -254,6 +258,9 @@ class BoardView():
 
 	def get_clue_count(self):
 		return self._board.get_clue_count()
+
+	def get_life_count(self):
+		return self._board.get_life_count()
 
 	def get_random_valid_clue(self, target_player_index):
 		if not self._is_cheater and target_player_index == self._pid:

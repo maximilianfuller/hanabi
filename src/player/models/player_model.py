@@ -25,10 +25,10 @@ class PlayerModel():
 					# Warning: this is a five, don't discard
 					for j in move.get_card_indice_set():
 						self._hand[j].is_five = True
-				# elif move.get_number() == Number.ONE:
-				# 	# Play all the ones
-				# 	for i in move.get_card_indice_set():
-				# 		self._hand[i].should_play = True 
+				elif move.get_number() == Number.ONE:
+					# Play all the ones
+					for i in move.get_card_indice_set():
+						self._hand[i].should_play = True 
 				else:
 					# Play only the leftmost card
 					leftmost = min(move.get_card_indice_set())
@@ -51,8 +51,16 @@ class PlayerModel():
 				
 				# Try to clue number
 				number = model.card.get_number()
+
+				# Try to clue multiple ones if none are already clued and all are playable. Cluing ones indicates to play all ones.
+				if number == Number.ONE:
+					ones = [m.card for m in self._hand if m.card.get_number() == number.ONE]
+					if len(already_clued_set.union(set(ones))) == len(already_clued_set) + len(ones):
+						if not [c for c in ones if not board_view.is_playable(c)]:
+							return Clue.get_clue_for_number(self.get_hand(), number, self._pid)
+
 				# Cluing fives is reserved for a five clue, not a play clue
-				if number != Number.FIVE:
+				elif number != Number.FIVE:
 					if not [j for j in range(len(self._hand)) if j < i and self._hand[j].card.get_number() == number]:
 						return Clue.get_clue_for_number(self.get_hand(), number, self._pid)
 

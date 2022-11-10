@@ -29,6 +29,9 @@ class Clue:
 			self.get_card_indice_set() == other.get_card_indice_set() and
 			self.get_target_player_index() == other.get_target_player_index())
 
+	def __hash__(self):
+	    return hash((self.get_number(), self.get_color()))
+
 	@staticmethod
 	def get_clue_for_color(hand, color, target_player_index):
 		card_indice_set = set([i for i in range(len(hand)) if hand[i].get_color() == color])
