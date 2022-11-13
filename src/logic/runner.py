@@ -18,10 +18,15 @@ class Runner:
 			move = self._player_list[curr_player_index].play()
 			if should_print_board:
 				print(self._board)
+				print()
+				print('\n'.join([f'Player {i} knows {self._player_list[i].get_knowledge_debug_string()}' for i in range(len(self._player_list))]))
+			prior_hand = self._board.get_hands()[curr_player_index].copy()
 			if not self._board.process_move(move):
 				raise Exception(f'player {curr_player_index} submitted invalid move: {move}')
 			if should_print_board:
 				player, move, new_draw = self._board.get_last_action()
+				if not isinstance(move, Clue):
+					move.add_card(prior_hand[move.get_card_index()])
 				assert(player == curr_player_index)
 				drawString = ""
 				if new_draw:

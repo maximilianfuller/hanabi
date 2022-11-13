@@ -52,6 +52,5 @@ class AlphaPlayer(Player):
 			already_clued_set.update(self.player_models[i].get_known_and_clued_cards())
 		return already_clued_set
 
-class CardModel():
-	def __init__(self, card):
-		self._card = card
+	def get_knowledge_debug_string(self):
+		return self.player_models[self.pid].get_debug_string()

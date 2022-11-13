@@ -51,19 +51,28 @@ class Clue:
 class Play:
 	def __init__(self, card_index):
 		self._card_index = card_index
+		self._card_played = None
 
 	def get_card_index(self):
 		return self._card_index
 
+	# Second class data used for printing only
+	def add_card(self, card):
+		self.card_played = card
+
 	def __str__(self):
-		return f"plays card at index {self._card_index}"
+		return f'plays {self.card_played if self.card_played else "card"} at index {self._card_index}'
 
 class Discard:
 	def __init__(self, card_index):
 		self._card_index = card_index
 
 	def get_card_index(self):
-		return self._card_index 
+		return self._card_index
+
+	# Second class data used for printing only
+	def add_card(self, card):
+		self.card_discarded = card
 
 	def __str__(self):
-		return f"discards card at index {self._card_index}"
+		return f'discards {self.card_discarded if self.card_discarded else "card"} at index {self._card_index}'

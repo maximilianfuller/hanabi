@@ -87,15 +87,24 @@ class PlayerModel():
 
 	# gets the index of a card to play. -1 if there is none
 	def get_playable_index(self, board_view):
-		for i in range(len(self._hand)):
-			if self._hand[i].directly_clued:
+		playable_indices = [i for i in range(len(self._hand)) if 
+			self._hand[i].directly_clued or 
+			board_view.is_playable(self._hand[i].public_card_knowledge.maybe_get_card())]
+
+		# prefer to play fives first since they give back clues
+		for i in playable_indices:
+			k = self._hand[i].public_card_knowledge
+			if k and k.number == Number.FIVE:
 				return i
-			if board_view.is_playable(self._hand[i].public_card_knowledge.maybe_get_card()):
-				return i
-		return -1
+		return playable_indices[0] if playable_indices else -1
+
+		
 
 	# gets the index of the next card to discard. Discards from the right and avoids fives, and discards trash cards if they are known.
 	def get_discard_index(self, board_view):
+		for i in range(len(self._hand)):
+			if board_view.is_trash(self._hand[i].public_card_knowledge.maybe_get_card()):
+				return i
 		for i in range(len(self._hand)-1, -1, -1):
 			if self._hand[i].is_five:
 				continue
@@ -110,18 +119,20 @@ class PlayerModel():
 		out.update([m.public_card_knowledge.maybe_get_card() for m in self._hand if m.public_card_knowledge.maybe_get_card()])
 		return out
 
+	def get_debug_string(self):
+		return str([str(m) for m in self._hand])
+
 
 # Simple card model for tracking card playability and fives
 class CardModel():
 	def __init__(self, card):
 		self.card = card
 		self.directly_clued = False
-		self.is_trash = False
 		self.is_five = False
 		self.public_card_knowledge = CardKnowledge()
 
 	def __str__(self):
-		return f'{self.card}, {self.directly_clued}, {self.is_five}, {self.public_card_knowledge}'
+		return f'{self.public_card_knowledge}'
 
 # Color or number properties known about a card
 class CardKnowledge():
@@ -134,4 +145,4 @@ class CardKnowledge():
 			return Card(self.color, self.number)
 
 	def __str__(self):
-		return f'{self.color}, {self.number}'
+		return f'({self.color.name[0] if self.color else ""}{self.number.value if self.number else ""})'

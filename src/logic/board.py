@@ -1,6 +1,7 @@
 from logic.move import *
 from logic.deck import Deck
 from collections import Counter
+import copy
 
 STARTING_CARDS_FOR_PLAYERS = {2: 5, 3: 5, 4: 4, 5: 4}
 STARTING_CLUES = 8
@@ -66,6 +67,8 @@ class Board():
 		return self._life_count
 
 	def get_hands(self):
+		# should be deep copy, but for perforance reasons we just use copy.
+		# return copy.deepcopy(self._hands)
 		return self._hands.copy()
 
 	# Returns a tuple (last_player_id, last_move, new_card_drawn), new_card_drawn may be None
@@ -94,6 +97,8 @@ class Board():
 	
 	# Returns whether or not a card can never be played in the future (and is thus no longer useful).
 	def is_trash(self, card):
+		if not card:
+			return False
 		if not self._played_cards[card.get_color()]:
 			return False
 		return self._played_cards[card.get_color()].value >= card.get_number().value

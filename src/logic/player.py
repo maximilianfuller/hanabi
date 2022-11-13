@@ -23,3 +23,7 @@ class Player:
 	# Override and return true to receive boards that contains this player's cards.
 	def is_cheater(self):
 		return False
+
+	# Get string indicating what the player knows about their hand
+	def get_knowledge_debug_string(self):
+		return ""
