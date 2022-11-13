@@ -44,7 +44,7 @@ class CheatingPlayerWithPlayerModel(CheatingPlayer):
 	def init_board_view(self, board_view):
 		super().init_board_view(board_view)
 		hands = self.board_view.get_hands()
-		self.player_models = {i: PlayerModel(i, hands[i], False) for i in range(self.num_players)}
+		self.player_models = {i: PlayerModel(i, hands[i]) for i in range(self.num_players)}
 
 	def on_board_update(self):
 		board_hands = self.board_view.get_hands()

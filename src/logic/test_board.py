@@ -245,7 +245,7 @@ class TestBoard(unittest.TestCase):
 		self.assertTrue(board_view.is_playable(C("W1")))
 		self.assertFalse(board_view.is_trash(C("R1")))
 		self.assertEqual(board_view.get_danger_cards(), set([C("R5"), C("W5"), C("B5"), C("Y5"), C("G5")]))
-		self.assertEqual(board_view.get_last_action(), (None, None, None))
+		self.assertEqual(board_view.get_last_action(), (None, None, None, False))
 
 	def test_board_view_cheater(self):
 		board = Board(Deck(), 3)

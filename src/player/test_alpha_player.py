@@ -13,8 +13,6 @@ class TestAlphaPlayer(unittest.TestCase):
 			runner.run()
 			self.assertEqual(players[0].board_view.get_life_count(), 3)
 
-	
-
 
 
 if __name__ == '__main__':

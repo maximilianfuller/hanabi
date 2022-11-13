@@ -86,6 +86,8 @@ class Board():
 		return Clue(color, matching_indices, target_player_index)
 
 	def is_playable(self, card):
+		if not card: 
+			return False
 		if not self._played_cards[card.get_color()]:
 			return card.get_number() == Number.ONE
 		return self._played_cards[card.get_color()].value + 1 == card.get_number().value
@@ -225,7 +227,7 @@ class Board():
 		    f'Clues: {self._clue_count}\n'
 		    f'Lives: {self._life_count}\n'
 		    f'Score: {self.get_score()}\n'
-			f'Danger Cards: {[str(c) for c in self.get_danger_cards()]}\n'
+			f'Danger Cards: {[str(c) for c in self.get_danger_cards() if c.get_number() != Number.FIVE]}\n'
 			f'Hopeless Cards: {[str(c) for c in self.get_hopeless_cards()]}'
 
 		)
@@ -244,11 +246,15 @@ class BoardView():
 			del hands[self._pid]
 		return hands
 
+	# Returns p
 	def get_last_action(self):
 		pid, move, card = self._board.get_last_action()
+		# distinguish between dry deck and hiding card from player
+		final_round = bool(move) and not bool(card)
+		# print(f'final round {final_round} {move} {card}')
 		if not self._is_cheater and self._pid == pid:
-			return (pid, move, None)
-		return pid, move, card
+			card = None
+		return (pid, move, card, final_round)
 
 	def is_game_over(self):
 		return self._board.is_game_over()
