@@ -71,6 +71,9 @@ class Board():
 		# return copy.deepcopy(self._hands)
 		return self._hands.copy()
 
+	def get_played_cards(self):
+		return self._played_cards.copy()
+
 	# Returns a tuple (last_player_id, last_move, new_card_drawn), new_card_drawn may be None
 	# if the last move was a clue, or if we are at the end of the game
 	def get_last_action(self):
@@ -286,4 +289,7 @@ class BoardView():
 		
 	def get_danger_cards(self):
 		return self._board.get_danger_cards()
+
+	def get_played_cards(self):
+		return self._board.get_played_cards()
 		

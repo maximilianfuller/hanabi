@@ -103,6 +103,7 @@ class PlayerModel():
 			return None
 		if first_card_of_next_player in known_and_clued_cards:
 			return None
+		# This clue was a five clue, not a finesse clue
 		if first_card_of_next_player.get_number() == Number.FIVE:
 			return None
 		target_card = Card(first_card_of_next_player.get_color(), Number(first_card_of_next_player.get_number().value+1))
