@@ -20,6 +20,22 @@ class PlayerModel():
 					self._hand.insert(0, CardModel(new_draw))
 		else:
 			# Process clue
+
+			# Handle Finessed cards
+			n = board_view.get_player_count()
+			previous_player_issued_clue = self._pid == (pid+1)%n
+			clue_was_for_next_player = self._pid == (move.get_target_player_index()-1)%n
+			if previous_player_issued_clue and clue_was_for_next_player:
+				target_index = min(move.get_card_indice_set())
+				hands = board_view.get_hands()
+				# The clued player is unaware of the finesse--they cannot be notified
+				if move.get_target_player_index() in hands:
+					target_card = board_view.get_hands()[move.get_target_player_index()][target_index]
+					if not board_view.is_playable(target_card) and move.get_number() != Number.FIVE:
+						self._hand[0].is_finessed = True
+
+
+				# play left most card
 			if self._pid == move.get_target_player_index():
 				if move.get_number() == Number.FIVE:
 					# Remember not to discard fives
@@ -74,6 +90,38 @@ class PlayerModel():
 					return Clue.get_clue_for_color(self.get_hand(), color, self._pid)
 		return None
 
+	# Gets a finesse clue. If there are none, returns None.
+	@staticmethod
+	def find_new_finesse_clue_to_give(cluer_pid, board_view, known_and_clued_cards):
+		if board_view.get_player_count() == 2:
+			return None
+		hands = board_view.get_hands()
+		next_player = (cluer_pid + 1)%board_view.get_player_count()
+		last_player = (cluer_pid + 2)%board_view.get_player_count()
+		first_card_of_next_player = hands[next_player][0]
+		if not board_view.is_playable(first_card_of_next_player):
+			return None
+		if first_card_of_next_player in known_and_clued_cards:
+			return None
+		if first_card_of_next_player.get_number() == Number.FIVE:
+			return None
+		target_card = Card(first_card_of_next_player.get_color(), Number(first_card_of_next_player.get_number().value+1))
+		if target_card in known_and_clued_cards:
+			return None
+		for i in range(len(hands[last_player])):
+			card = hands[last_player][i]
+			if card.get_color() == target_card.get_color():
+				if hands[last_player][i] == target_card:
+					return Clue.get_clue_for_color(hands[last_player], target_card.get_color(), last_player)
+				break
+		for i in range(len(hands[last_player])):
+			card = hands[last_player][i]
+			if card.get_number() == target_card.get_number():
+				if hands[last_player][i] == target_card:
+					return Clue.get_clue_for_number(hands[last_player], target_card.get_number(), last_player)
+				break
+		return None
+
 	# Gets a five clue that hasn't already been clued. If there are none, returns None.
 	def find_new_five_clue_to_give(self):
 		for i in range(len(self._hand)-2, len(self._hand)):
@@ -89,13 +137,8 @@ class PlayerModel():
 	def get_playable_index(self, board_view):
 		playable_indices = [i for i in range(len(self._hand)) if 
 			self._hand[i].directly_clued or 
+			self._hand[i].is_finessed or
 			board_view.is_playable(self._hand[i].public_card_knowledge.maybe_get_card())]
-
-		# prefer to play fives first since they give back clues
-		for i in playable_indices:
-			k = self._hand[i].public_card_knowledge
-			if k and k.number == Number.FIVE:
-				return i
 		return playable_indices[0] if playable_indices else -1
 
 		
@@ -130,9 +173,10 @@ class CardModel():
 		self.directly_clued = False
 		self.is_five = False
 		self.public_card_knowledge = CardKnowledge()
+		self.is_finessed=False
 
 	def __str__(self):
-		return f'{self.public_card_knowledge}'
+		return f'{self.public_card_knowledge}{"C" if self.directly_clued else ""}{"F" if self.is_finessed else ""}'
 
 # Color or number properties known about a card
 class CardKnowledge():

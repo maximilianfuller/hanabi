@@ -28,6 +28,9 @@ class AlphaPlayer(Player):
 
 		# Otherwise try to clue
 		if self.board_view.get_clue_count() > 0:
+			clue = PlayerModel.find_new_finesse_clue_to_give(self.pid, self.board_view, self.get_known_and_clued_cards())
+			if clue:
+				return clue
 			#prefer to clue next player
 			player_rotation = [i%self.num_players for i in range(self.pid+1, self.num_players+self.pid)]
 			# Clue playable cards
