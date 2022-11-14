@@ -29,6 +29,8 @@ class Board():
 		self._moves = []
 		# list of draws, None if nothing was drawn for that turn
 		self._draws = []
+		# list of cards actually played or discarded. Nothing if that turn was a clue.
+		self._actioned_cards = []
 
 	# Returns True iff validation succeeds
 	def process_move(self, move):
@@ -69,7 +71,7 @@ class Board():
 	def get_hands(self):
 		# should be deep copy, but for perforance reasons we just use copy.
 		# return copy.deepcopy(self._hands)
-		return self._hands.copy()
+		return {k: v.copy() for k, v in self._hands.items()}
 
 	def get_played_cards(self):
 		return self._played_cards.copy()
@@ -78,11 +80,23 @@ class Board():
 	# if the last move was a clue, or if we are at the end of the game
 	def get_last_action(self):
 		if not self._moves:
-			return (None, None, None)
+			return (None, None, None, None)
 		last_move = self._moves[-1]
 		last_draw = self._draws[-1]
+		last_actioned_card = self._actioned_cards[-1]
 		last_pid = (self._curr_player-1)%self.get_player_count()
-		return (last_pid, last_move, last_draw)
+		return (last_pid, last_move, last_draw, last_actioned_card)
+
+	# Returns a tuple (last_player_id, last_move, new_card_drawn), new_card_drawn may be None
+	# if the last move was a clue, or if we are at the end of the game
+	def get_second_to_last_action(self):
+		if len(self._moves) < 2:
+			return (None, None, None, None)
+		last_move = self._moves[-2]
+		last_draw = self._draws[-2]
+		last_actioned_card = self._actioned_cards[-2]
+		last_pid = (self._curr_player-2)%self.get_player_count()
+		return (last_pid, last_move, last_draw, last_actioned_card)
 
 	# Useful for testing and cheating bots.
 	def get_random_valid_clue(self, target_player_index):
@@ -196,6 +210,7 @@ class Board():
 
 	def __update_state(self, move):
 		new_card = None
+		card = None
 		if isinstance(move, Clue):
 			self._clue_count -= 1
 		elif isinstance(move, Play):
@@ -222,6 +237,7 @@ class Board():
 		self._curr_player = (self._curr_player + 1) % self._player_count
 		self._moves.append(move)
 		self._draws.append(new_card)
+		self._actioned_cards.append(card)
 		
 	def __str__(self):
 		out = ""
@@ -254,15 +270,23 @@ class BoardView():
 			del hands[self._pid]
 		return hands
 
-	# Returns p
+	# Returns (player_id, move, new card drawn, whether or not it is the final round)
 	def get_last_action(self):
-		pid, move, card = self._board.get_last_action()
+		pid, move, draw, actioned_card = self._board.get_last_action()
 		# distinguish between dry deck and hiding card from player
-		final_round = bool(move) and not bool(card)
-		# print(f'final round {final_round} {move} {card}')
+		final_round = bool(move) and not bool(draw)
 		if not self._is_cheater and self._pid == pid:
 			card = None
-		return (pid, move, card, final_round)
+		return (pid, move, draw, actioned_card, final_round)
+
+	# Returns (player_id, move, new card drawn, whether or not it is the final round)
+	def get_second_to_last_action(self):
+		pid, move, draw, actioned_card = self._board.get_second_to_last_action()
+		# distinguish between dry deck and hiding card from player
+		final_round = bool(move) and not bool(draw)
+		if not self._is_cheater and self._pid == pid:
+			card = None
+		return (pid, move, draw, actioned_card, final_round)
 
 	def is_game_over(self):
 		return self._board.is_game_over()

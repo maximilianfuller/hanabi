@@ -112,7 +112,11 @@ class TestBoard(unittest.TestCase):
 		board = Board(deck, 5)
 		discard = Discard(0)
 		board.process_move(discard)
-		self.assertEqual(board.get_last_action(), (0, discard, C("B2")))
+		self.assertEqual(board.get_last_action(), (0, discard, C("B2"), C("R1")))
+		self.assertEqual(board.get_second_to_last_action(), (None, None, None, None))
+		play = Play(0)
+		board.process_move(play)
+		self.assertEqual(board.get_second_to_last_action(), (0, discard, C("B2"), C("R1")))
 
 	def test_cant_clue_self_invalid_clue(self):
 		board = Board(Deck(Deck.get_new_sorted_cards()), 2)
@@ -247,7 +251,8 @@ class TestBoard(unittest.TestCase):
 		self.assertTrue(board_view.is_playable(C("W1")))
 		self.assertFalse(board_view.is_trash(C("R1")))
 		self.assertEqual(board_view.get_danger_cards(), set([C("R5"), C("W5"), C("B5"), C("Y5"), C("G5")]))
-		self.assertEqual(board_view.get_last_action(), (None, None, None, False))
+		self.assertEqual(board_view.get_last_action(), (None, None, None, None, False))
+		self.assertEqual(board_view.get_second_to_last_action(), (None, None, None, None, False))
 		self.assertEqual(board_view.get_played_cards(), {Color.RED: None, Color.WHITE: None, Color.BLUE: None, Color.GREEN: None, Color.YELLOW: None})
 
 	def test_board_view_cheater(self):

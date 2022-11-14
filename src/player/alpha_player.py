@@ -16,9 +16,16 @@ class AlphaPlayer(Player):
 		self.player_models = {i: PlayerModel(i, hands[i]) for i in range(self.num_players)}
 
 	def on_board_update(self):
+		# check if move was out of the blue
+		previous_oob_card = None
+		pid, move, new_draw, actioned_card, final_round = self.board_view.get_last_action()
+		if isinstance(move, Play):
+			is_oob = self.player_models[pid].is_oob(move.get_card_index(), self.board_view)
+			previous_oob_card = actioned_card if is_oob else None
+
 		board_hands = self.board_view.get_hands()
 		for pid, model in self.player_models.items():
-			model.process_update(self.board_view)
+			model.process_update(self.board_view, previous_oob_card)
 
 	def play(self):
 		# Try to play
@@ -28,7 +35,7 @@ class AlphaPlayer(Player):
 
 		# Otherwise try to clue
 		if self.board_view.get_clue_count() > 0:
-			clue = PlayerModel.find_new_finesse_clue_to_give(self.pid, self.board_view, self.get_known_and_clued_cards())
+			clue = PlayerModel.find_new_bluff_or_finesse_clue_to_give(self.pid, self.board_view, self.get_known_and_clued_cards())
 			if clue:
 				return clue
 			#prefer to clue next player

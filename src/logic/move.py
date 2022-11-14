@@ -66,6 +66,7 @@ class Play:
 class Discard:
 	def __init__(self, card_index):
 		self._card_index = card_index
+		self.card_discarded = None
 
 	def get_card_index(self):
 		return self._card_index

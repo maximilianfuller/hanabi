@@ -6,20 +6,40 @@ class PlayerModel():
 		self._pid = pid
 		self._hand = [CardModel(c) for c in hand]
 
-	def process_update(self, board_view):
+	def process_update(self, board_view, previous_oob_card):
 		# new_draw will be None if this the player's model
-		pid, move, new_draw, final_round = board_view.get_last_action()
+		pid, move, new_draw, actioned_card, final_round = board_view.get_last_action()
 		if not move:
 			return
 		if isinstance(move, Discard) or isinstance(move, Play):
 			# Process Move/Play
+
+			# TODO clean up
+			# Process potential middle card play in a bluff
+			if previous_oob_card:
+				assert(board_view.get_player_count() > 2)
+				_, prev_clue, _, _, _ = board_view.get_second_to_last_action()
+				assert(isinstance(prev_clue, Clue))
+				if prev_clue.get_target_player_index() == self._pid:
+					leftmost = min(prev_clue.get_card_indice_set())
+					is_finesse = prev_clue.get_number() or prev_clue.get_color() == previous_oob_card.get_color()
+					if not is_finesse:
+						# this was a bluff not a clue! Don't play this card
+						self._hand[leftmost].directly_clued = False
+						# Now we know what this card is
+						ck = self._hand[leftmost].public_card_knowledge
+						played_num = board_view.get_played_cards()[prev_clue.get_color()]
+						played_num_val = played_num.value if played_num else 0
+						ck.number = Number(played_num_val+2)
+
+
 			if self._pid == pid:
 				del self._hand[move.get_card_index()]
 				if not final_round:
 					# insert None new draws for unknown hands
 					self._hand.insert(0, CardModel(new_draw))
 		else:
-			# Process clue
+			# handle clue
 
 			# Handle Finessed cards
 			n = board_view.get_player_count()
@@ -92,7 +112,7 @@ class PlayerModel():
 
 	# Gets a finesse clue. If there are none, returns None.
 	@staticmethod
-	def find_new_finesse_clue_to_give(cluer_pid, board_view, known_and_clued_cards):
+	def find_new_bluff_or_finesse_clue_to_give(cluer_pid, board_view, known_and_clued_cards):
 		if board_view.get_player_count() == 2:
 			return None
 		hands = board_view.get_hands()
@@ -106,22 +126,23 @@ class PlayerModel():
 		# This clue was a five clue, not a finesse clue
 		if first_card_of_next_player.get_number() == Number.FIVE:
 			return None
-		target_card = Card(first_card_of_next_player.get_color(), Number(first_card_of_next_player.get_number().value+1))
-		if target_card in known_and_clued_cards:
-			return None
-		for i in range(len(hands[last_player])):
-			card = hands[last_player][i]
-			if card.get_color() == target_card.get_color():
-				if hands[last_player][i] == target_card:
-					return Clue.get_clue_for_color(hands[last_player], target_card.get_color(), last_player)
-				break
-		for i in range(len(hands[last_player])):
-			card = hands[last_player][i]
-			if card.get_number() == target_card.get_number():
-				if hands[last_player][i] == target_card:
-					return Clue.get_clue_for_number(hands[last_player], target_card.get_number(), last_player)
-				break
-		return None
+		# look for 'the board +2' in the last player
+		target_cards = [Card(color, Number(number.value+2 if number else 2)) for color, number in board_view.get_played_cards().items() if not number or number.value <= 3]
+		target_cards = set([card for card in target_cards if card not in known_and_clued_cards])
+		hand = hands[last_player]
+		for i in range(len(hand)):
+			card = hand[i]
+			if card in target_cards:
+				color = card.get_color()
+				number = card.get_number()
+				is_finesse = color == first_card_of_next_player.get_color()
+				#TODO move out
+				if not [j for j in range(len(hand)) if j < i and hand[j].get_color() == color]:
+					return Clue.get_clue_for_color(hand, color, last_player)
+				# bluffs can't clue number	
+				if is_finesse:
+					if not [j for j in range(len(hand)) if j < i and hand[j].get_number() == number]:
+						return Clue.get_clue_for_number(hand, number, last_player)
 
 	# Gets a five clue that hasn't already been clued. If there are none, returns None.
 	def find_new_five_clue_to_give(self):
@@ -142,7 +163,13 @@ class PlayerModel():
 			board_view.is_playable(self._hand[i].public_card_knowledge.maybe_get_card())]
 		return playable_indices[0] if playable_indices else -1
 
-		
+	# Return whether or not there is normal reason to play the card at index playable_index
+	def is_oob(self, playable_index, board_view):
+		if playable_index < 0:
+			return None
+		model = self._hand[playable_index]
+		out = not model.directly_clued and not model.public_card_knowledge.maybe_get_card()
+		return out
 
 	# gets the index of the next card to discard. Discards from the right and avoids fives, and discards trash cards if they are known.
 	def get_discard_index(self, board_view):
