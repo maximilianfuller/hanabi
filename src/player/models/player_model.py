@@ -8,72 +8,19 @@ class PlayerModel():
 
 	def process_update(self, board_view, previous_oob_card):
 		# new_draw will be None if this the player's model
-		pid, move, new_draw, actioned_card, final_round = board_view.get_last_action()
+		pid, move, new_draw, actioned_card, is_final_round = board_view.get_last_action()
 		if not move:
 			return
-		if isinstance(move, Discard) or isinstance(move, Play):
-			# Process Move/Play
-
-			# TODO clean up
-			# Process potential middle card play in a bluff
-			if previous_oob_card:
-				assert(board_view.get_player_count() > 2)
-				_, prev_clue, _, _, _ = board_view.get_second_to_last_action()
-				assert(isinstance(prev_clue, Clue))
-				if prev_clue.get_target_player_index() == self._pid:
-					leftmost = min(prev_clue.get_card_indice_set())
-					is_finesse = prev_clue.get_number() or prev_clue.get_color() == previous_oob_card.get_color()
-					if not is_finesse:
-						# this was a bluff not a clue! Don't play this card
-						self._hand[leftmost].directly_clued = False
-						# Now we know what this card is
-						ck = self._hand[leftmost].public_card_knowledge
-						played_num = board_view.get_played_cards()[prev_clue.get_color()]
-						played_num_val = played_num.value if played_num else 0
-						ck.number = Number(played_num_val+2)
-
-
-			if self._pid == pid:
-				del self._hand[move.get_card_index()]
-				if not final_round:
-					# insert None new draws for unknown hands
-					self._hand.insert(0, CardModel(new_draw))
-		else:
-			# handle clue
-
-			# Handle Finessed cards
-			n = board_view.get_player_count()
-			previous_player_issued_clue = self._pid == (pid+1)%n
-			clue_was_for_next_player = self._pid == (move.get_target_player_index()-1)%n
-			if previous_player_issued_clue and clue_was_for_next_player:
-				target_index = min(move.get_card_indice_set())
-				hands = board_view.get_hands()
-				# The clued player is unaware of the finesse--they cannot be notified
-				if move.get_target_player_index() in hands:
-					target_card = board_view.get_hands()[move.get_target_player_index()][target_index]
-					if not board_view.is_playable(target_card) and move.get_number() != Number.FIVE:
-						self._hand[0].is_finessed = True
-
-				# play left most card
-			if self._pid == move.get_target_player_index():
-				if move.get_number() == Number.FIVE:
-					# Remember not to discard fives
-					for j in move.get_card_indice_set():
-						self._hand[j].is_five = True
-				elif move.get_number() == Number.ONE:
-					# Remember to play all the ones
-					for i in move.get_card_indice_set():
-						self._hand[i].directly_clued = True 
-				else:
-					# Remember to play only the leftmost card
-					leftmost = min(move.get_card_indice_set())
-					self._hand[leftmost].directly_clued = True
-				# Remember clue itself
-				for i in move.get_card_indice_set():
-					if move.get_color():
-						self._hand[i].public_card_knowledge.color = move.get_color()
-					else:
-						self._hand[i].public_card_knowledge.number = move.get_number()
+		if isinstance(move, Play):
+			self._maybe_process_finessed_play(board_view, previous_oob_card)
+			self._process_new_card(move.get_card_index(), new_draw, pid, is_final_round)
+		elif isinstance(move, Discard):
+			self._process_new_card(move.get_card_index(), new_draw, pid, is_final_round)
+		elif isinstance(move, Clue):
+			self._maybe_process_finesse_clue(move, board_view, pid)
+			self._maybe_process_five_clue(move, board_view, pid)			
+			self._maybe_process_direct_clue(move, board_view, pid)	
+			self._remember_clue(move, pid)		
 
 		# infer last five (cheap inference until more robust inference is built)
 		unfinished_colors = [color for color, number in board_view.get_played_cards().items() if number != Number.FIVE]
@@ -81,6 +28,73 @@ class PlayerModel():
 			for m in self._hand:
 				if m.public_card_knowledge.number == Number.FIVE:
 					m.public_card_knowledge.color = unfinished_colors[0]
+
+	def _maybe_process_finessed_play(self, board_view, previous_oob_card):
+		if previous_oob_card:
+			assert(board_view.get_player_count() > 2)
+			_, prev_clue, _, _, _ = board_view.get_second_to_last_action()
+			assert(isinstance(prev_clue, Clue))
+			if prev_clue.get_target_player_index() == self._pid:
+				leftmost = min(prev_clue.get_card_indice_set())
+				is_finesse = prev_clue.get_number() or prev_clue.get_color() == previous_oob_card.get_color()
+				if not is_finesse:
+					# this was a bluff not a clue! Don't play this card
+					self._hand[leftmost].directly_clued = False
+					# Now we know what this card is
+					ck = self._hand[leftmost].public_card_knowledge
+					played_num = board_view.get_played_cards()[prev_clue.get_color()]
+					played_num_val = played_num.value if played_num else 0
+					ck.number = Number(played_num_val+2)
+
+	def _process_new_card(self, removed_card_index, new_draw, pid, is_final_round):
+		if self._pid == pid:
+			del self._hand[removed_card_index]
+			if not is_final_round:
+				# insert None new draws for unknown hands
+				self._hand.insert(0, CardModel(new_draw))
+
+	def _maybe_process_five_clue(self, clue, board_view, pid):
+		if self._pid != clue.get_target_player_index():
+			return
+		if clue.get_number() == Number.FIVE:
+			# Remember not to discard fives
+			for j in clue.get_card_indice_set():
+				self._hand[j].is_five = True
+
+	def _maybe_process_direct_clue(self, clue, board_view, pid):
+		if self._pid != clue.get_target_player_index():
+			return
+		elif clue.get_number() == Number.ONE:
+			# Remember to play all the ones
+			for i in clue.get_card_indice_set():
+				self._hand[i].directly_clued = True 
+		elif clue.get_number() != Number.FIVE:
+			# Remember to play only the leftmost card
+			leftmost = min(clue.get_card_indice_set())
+			self._hand[leftmost].directly_clued = True
+
+	def _maybe_process_finesse_clue(self, clue, board_view, pid):
+		n = board_view.get_player_count()
+		previous_player_issued_clue = self._pid == (pid+1)%n
+		clue_was_for_next_player = self._pid == (clue.get_target_player_index()-1)%n
+		if previous_player_issued_clue and clue_was_for_next_player:
+			target_index = min(clue.get_card_indice_set())
+			hands = board_view.get_hands()
+			# The clued player is unaware of the finesse--they cannot be notified
+			if clue.get_target_player_index() in hands:
+				target_card = board_view.get_hands()[clue.get_target_player_index()][target_index]
+				if not board_view.is_playable(target_card) and clue.get_number() != Number.FIVE:
+					self._hand[0].is_finessed = True
+
+	def _remember_clue(self, clue, pid):
+		if self._pid != clue.get_target_player_index():
+			return
+		for i in clue.get_card_indice_set():
+			if clue.get_color():
+				self._hand[i].public_card_knowledge.color = clue.get_color()
+			else:
+				self._hand[i].public_card_knowledge.number = clue.get_number()
+
 
 	def get_hand(self):
 		return [m.card for m in self._hand]

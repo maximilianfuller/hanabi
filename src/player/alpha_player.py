@@ -52,7 +52,6 @@ class AlphaPlayer(Player):
 				if clue:
 					return clue
 			
-
 		# Otherwise discard
 		discard_index = self.player_models[self.pid].get_discard_index(self.board_view)
 		return Discard(discard_index)
@@ -64,5 +63,4 @@ class AlphaPlayer(Player):
 		return already_clued_set
 
 	def get_knowledge_debug_string(self):
-
 		return "\n".join([self.player_models[i].get_debug_string() for i in range(self.num_players)])
