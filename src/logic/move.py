@@ -39,13 +39,24 @@ class Clue:
 			return None
 		return Clue(color, card_indice_set, target_player_index)
 
-
 	@staticmethod
 	def get_clue_for_number(hand, number, target_player_index):
 		card_indice_set = set([i for i in range(len(hand)) if hand[i].get_number() == number])
 		if not card_indice_set:
 			return None
 		return Clue(number, card_indice_set, target_player_index)
+
+	@staticmethod
+	def maybe_get_color_clue_if_left_most(hand, index, target_player_index):
+		color = hand[index].get_color()
+		if not [j for j in range(len(hand)) if j < index and hand[j].get_color() == color]:
+			return Clue.get_clue_for_color(hand, color, target_player_index)
+
+	@staticmethod
+	def maybe_get_number_clue_if_left_most(hand, index, target_player_index):
+		number = hand[index].get_number()
+		if not [j for j in range(len(hand)) if j < index and hand[j].get_number() == number]:
+			return Clue.get_clue_for_number(hand, number, target_player_index)
 
 
 class Play:

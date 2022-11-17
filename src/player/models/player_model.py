@@ -120,14 +120,15 @@ class PlayerModel():
 							return Clue.get_clue_for_number(self.get_hand(), number, self._pid)
 
 				# Try to clue color.
-				color = model.card.get_color()
-				if not [j for j in range(len(self._hand)) if j < i and self._hand[j].card.get_color() == color]:
-					return Clue.get_clue_for_color(self.get_hand(), color, self._pid)
+				clue = Clue.maybe_get_color_clue_if_left_most(self.get_hand(), i, self._pid)
+				if clue:
+					return clue
 
 				# Cluing fives is reserved for a five clue, not a play clue
 				elif number != Number.FIVE and number != Number.ONE:
-					if not [j for j in range(len(self._hand)) if j < i and self._hand[j].card.get_number() == number]:
-						return Clue.get_clue_for_number(self.get_hand(), number, self._pid)
+					clue = Clue.maybe_get_number_clue_if_left_most(self.get_hand(), i, self._pid)
+					if clue:
+						return clue
 
 				
 		return None
@@ -157,14 +158,15 @@ class PlayerModel():
 			if card in target_cards:
 				color = card.get_color()
 				number = card.get_number()
-				is_finesse = color == first_card_of_next_player.get_color()
-				#TODO move out
-				if not [j for j in range(len(hand)) if j < i and hand[j].get_color() == color]:
-					return Clue.get_clue_for_color(hand, color, last_player)
+				is_bluff = color != first_card_of_next_player.get_color()
+				clue = Clue.maybe_get_color_clue_if_left_most(hand, i, last_player)
+				if clue: 
+					return clue
 				# bluffs can't clue number	
-				if is_finesse:
-					if not [j for j in range(len(hand)) if j < i and hand[j].get_number() == number]:
-						return Clue.get_clue_for_number(hand, number, last_player)
+				if not is_bluff:
+					clue = Clue.maybe_get_number_clue_if_left_most(hand, i, last_player)
+					if clue: 
+						return clue
 
 	# Gets a five clue that hasn't already been clued. If there are none, returns None.
 	def find_new_five_clue_to_give(self, clue_last_n):
