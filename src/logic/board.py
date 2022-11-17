@@ -204,7 +204,7 @@ class Board():
 			if len(self._hands[self._curr_player]) <= move.get_card_index() or move.get_card_index() < 0:
 				return False
 		if isinstance(move, Discard):
-			if len(self._hands[self._curr_player]) <= move.get_card_index() or move.get_card_index() < 0:
+			if (len(self._hands[self._curr_player]) <= move.get_card_index()) or move.get_card_index() < 0:
 				return False
 		return True				
 
@@ -250,6 +250,7 @@ class Board():
 		    f'Deck: {self._deck.count()}\n'
 		    f'Clues: {self._clue_count}\n'
 		    f'Lives: {self._life_count}\n'
+		    f'Discards: {len([m for m in self._moves if isinstance(m, Discard)])}\n'
 		    f'Score: {self.get_score()}\n'
 			f'Danger Cards: {[str(c) for c in self.get_danger_cards() if c.get_number() != Number.FIVE]}\n'
 			f'Hopeless Cards: {[str(c) for c in self.get_hopeless_cards()]}'

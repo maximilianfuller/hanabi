@@ -9,7 +9,7 @@ class TestRunner(unittest.TestCase):
 			super().__init__(pid, num_players)
 			self.play_count = 0
 			self.update_count = 0
-		def play(self):
+		def get_move(self):
 			self.play_count += 1
 			return Discard(0)
 		def on_board_update(self):
@@ -21,7 +21,7 @@ class TestRunner(unittest.TestCase):
 			super().__init__(pid, num_players)
 			self.play_count = 0
 			self.update_count = 0
-		def play(self):
+		def get_move(self):
 			self.play_count += 1
 			return Discard(0)
 		def on_board_update(self):

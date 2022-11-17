@@ -12,8 +12,8 @@ class Player:
 		self.board_view = board_view
 		self.player_count = board_view.get_player_count()
 
-	# Returns either a Play, Discard, or Clue. Called when it is the players turn to play.
-	def play(self):
+	# Returns either a Play, Discard, or Clue. Called when it is the players turn to move.
+	def get_move(self):
 		pass
 
 	# Void function. Called after every player's move.

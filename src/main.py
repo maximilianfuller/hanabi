@@ -6,9 +6,9 @@ from player.alpha_player import *
 
 ###############################
 # Configurable Params
-NUM_SIMULATIONS = 1
+NUM_SIMULATIONS = 10000
 PLAYER_TO_TEST = AlphaPlayer
-PRINT_BOARDS = True
+PRINT_BOARDS = False
 NUM_PLAYERS = 3
 ###############################
 
@@ -21,5 +21,7 @@ for i in range(NUM_SIMULATIONS):
 	score_sum += score
 	if score == 25:
 		win_count += 1
+	print (f'{i}, winrate: {"{0:.4f}".format(win_count/(i+1))}, score:{"{0:.4f}".format(score_sum/(i+1))}', end="\r")
+
 print(f'average game score: {score_sum/NUM_SIMULATIONS}')
 print(f'average win rate: {win_count/NUM_SIMULATIONS}')

@@ -7,6 +7,7 @@ import unittest
 
 class TestAlphaPlayer(unittest.TestCase):
 	def test_no_misplays(self):
+		pass
 		for i in range(100):
 			players = [AlphaPlayer(i, 3) for i in range(3)]
 			runner = Runner(players)

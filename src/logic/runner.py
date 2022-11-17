@@ -15,11 +15,11 @@ class Runner:
 		move_number = 1
 		self.__update_players()
 		while not self._board.is_game_over():
-			move = self._player_list[curr_player_index].play()
+			move = self._player_list[curr_player_index].get_move()
 			if should_print_board:
 				print(self._board)
 				print()
-				print('\n'.join([f'Player {i} knows {self._player_list[i].get_knowledge_debug_string()}' for i in range(len(self._player_list))]))
+				print('\n'.join([f'Player {i} knows\n{self._player_list[i].get_knowledge_debug_string()}' for i in range(len(self._player_list))]))
 			if not self._board.process_move(move):
 				raise Exception(f'player {curr_player_index} submitted invalid move: {move}')
 			if should_print_board:

@@ -54,7 +54,6 @@ class PlayerModel():
 					if not board_view.is_playable(target_card) and move.get_number() != Number.FIVE:
 						self._hand[0].is_finessed = True
 
-
 				# play left most card
 			if self._pid == move.get_target_player_index():
 				if move.get_number() == Number.FIVE:
@@ -76,12 +75,19 @@ class PlayerModel():
 					else:
 						self._hand[i].public_card_knowledge.number = move.get_number()
 
+		# infer last five (cheap inference until more robust inference is built)
+		unfinished_colors = [color for color, number in board_view.get_played_cards().items() if number != Number.FIVE]
+		if len(unfinished_colors) == 1:
+			for m in self._hand:
+				if m.public_card_knowledge.number == Number.FIVE:
+					m.public_card_knowledge.color = unfinished_colors[0]
+
 	def get_hand(self):
 		return [m.card for m in self._hand]
 
 	# Gets a play clue that hasn't already been clued. If there are none, returns None.
 	def find_new_play_clue_to_give(self, board_view, known_and_clued_cards):
-		for i in range(len(self._hand)):
+		for i in range(len(self._hand)-1, -1, -1):
 			model = self._hand[i]
 			if model.directly_clued:
 				continue
@@ -99,15 +105,17 @@ class PlayerModel():
 						if not [c for c in ones if not board_view.is_playable(c)]:
 							return Clue.get_clue_for_number(self.get_hand(), number, self._pid)
 
-				# Cluing fives is reserved for a five clue, not a play clue
-				elif number != Number.FIVE:
-					if not [j for j in range(len(self._hand)) if j < i and self._hand[j].card.get_number() == number]:
-						return Clue.get_clue_for_number(self.get_hand(), number, self._pid)
-
 				# Try to clue color.
 				color = model.card.get_color()
 				if not [j for j in range(len(self._hand)) if j < i and self._hand[j].card.get_color() == color]:
 					return Clue.get_clue_for_color(self.get_hand(), color, self._pid)
+
+				# Cluing fives is reserved for a five clue, not a play clue
+				elif number != Number.FIVE and number != Number.ONE:
+					if not [j for j in range(len(self._hand)) if j < i and self._hand[j].card.get_number() == number]:
+						return Clue.get_clue_for_number(self.get_hand(), number, self._pid)
+
+				
 		return None
 
 	# Gets a finesse clue. If there are none, returns None.
@@ -145,8 +153,8 @@ class PlayerModel():
 						return Clue.get_clue_for_number(hand, number, last_player)
 
 	# Gets a five clue that hasn't already been clued. If there are none, returns None.
-	def find_new_five_clue_to_give(self):
-		for i in range(len(self._hand)-2, len(self._hand)):
+	def find_new_five_clue_to_give(self, clue_last_n):
+		for i in range(len(self._hand)-1, len(self._hand)-1-clue_last_n, -1):
 			model = self._hand[i]
 			if model.is_five:
 				continue
@@ -157,7 +165,7 @@ class PlayerModel():
 
 	# gets the index of a card to play. -1 if there is none
 	def get_playable_index(self, board_view):
-		playable_indices = [i for i in range(len(self._hand)) if 
+		playable_indices = [i for i in range(len(self._hand)) if
 			self._hand[i].directly_clued or 
 			self._hand[i].is_finessed or
 			board_view.is_playable(self._hand[i].public_card_knowledge.maybe_get_card())]
@@ -180,6 +188,7 @@ class PlayerModel():
 			if self._hand[i].is_five:
 				continue
 			return i
+		return len(self._hand)-1
 
 	def is_danger_card(self, index):
 		return self._hand[index].is_five
@@ -203,8 +212,17 @@ class CardModel():
 		self.public_card_knowledge = CardKnowledge()
 		self.is_finessed=False
 
+	# def infer_card_set_from_visible_cards(visible_card_counter):
+	# 	candidates = Card.get_set_of_all_cards()
+	# 	color = self.public_card_knowledge.color
+	# 	number = self.public_card_knowledge.number
+	# 	candidates = set([c for c in candidates if c.get_color() == color])
+	# 	candidates = set([c for c in candidates if c.get_number() == number])
+	# 	candidates = set([c for c in candidates if visible_card_counter[c] < Deck.CARD_COUNTS[c.get_number()]])
+	# 	return candidates
+
 	def __str__(self):
-		return f'{self.public_card_knowledge}{"C" if self.directly_clued else ""}{"F" if self.is_finessed else ""}'
+		return f'{self.public_card_knowledge}{"C" if self.directly_clued else ""}{"F" if self.is_finessed else ""}{"5" if self.is_five else ""}'
 
 # Color or number properties known about a card
 class CardKnowledge():

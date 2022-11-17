@@ -23,11 +23,12 @@ class AlphaPlayer(Player):
 			is_oob = self.player_models[pid].is_oob(move.get_card_index(), self.board_view)
 			previous_oob_card = actioned_card if is_oob else None
 
+		# update models as normal
 		board_hands = self.board_view.get_hands()
 		for pid, model in self.player_models.items():
 			model.process_update(self.board_view, previous_oob_card)
 
-	def play(self):
+	def get_move(self):
 		# Try to play
 		playable_index = self.player_models[self.pid].get_playable_index(self.board_view)
 		if playable_index >= 0:
@@ -40,14 +41,14 @@ class AlphaPlayer(Player):
 				return clue
 			#prefer to clue next player
 			player_rotation = [i%self.num_players for i in range(self.pid+1, self.num_players+self.pid)]
+			# Clue fives
+			for i in player_rotation:
+				clue = self.player_models[i].find_new_five_clue_to_give(1)
+				if clue:
+					return clue
 			# Clue playable cards
 			for i in player_rotation:
 				clue = self.player_models[i].find_new_play_clue_to_give(self.board_view, self.get_known_and_clued_cards())
-				if clue:
-					return clue
-			# Clue fives
-			for i in player_rotation:
-				clue = self.player_models[i].find_new_five_clue_to_give()
 				if clue:
 					return clue
 			
@@ -63,4 +64,5 @@ class AlphaPlayer(Player):
 		return already_clued_set
 
 	def get_knowledge_debug_string(self):
-		return self.player_models[self.pid].get_debug_string()
+
+		return "\n".join([self.player_models[i].get_debug_string() for i in range(self.num_players)])

@@ -8,7 +8,7 @@ class CheatingPlayer(Player):
 	def is_cheater(self):
 		return True
 
-	def play(self):
+	def get_move(self):
 		# Play if hand is playable
 		hand = self.board_view.get_hands()[self.pid]
 		for i in range(len(hand)):

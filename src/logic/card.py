@@ -36,6 +36,15 @@ class Card:
 	def __str__(self):
 		return f'{self.get_color().name[0]}{self.get_number().value}'
 
+	@staticmethod
+	def get_set_of_all_cards():
+		out = set()
+		for color in Color:
+			for number in Number:
+				out.add(Card(color, number))
+		return out
+
+
 def __color_string_to_color(c):
 	if c == "R":
 		return Color.RED
