@@ -51,7 +51,7 @@ class CheatingPlayerWithPlayerModel(CheatingPlayer):
 		for pid, model in self.player_models.items():
 			model.process_update(self.board_view, None)
 			# Check to make sure model state matches board state
-			assert(model.get_hand() == board_hands[pid])
+			assert(model._get_cards() == board_hands[pid])
 
 
 

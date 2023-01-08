@@ -3,7 +3,8 @@ from logic.move import Play
 from logic.board import *
 from player.models.player_model import PlayerModel
 
-# Simple player plays if they have a clue, otherwise clues if someone hasn't been clued, otherwise discards
+# Simple player plays if they have a clue, otherwise clues if someone hasn't been clued, otherwise discards.
+# Holds a list of player models to keep track of what everyone knows (including what they know)
 class AlphaPlayer(Player):
 
 	def __init__(self, pid, num_players):
@@ -34,23 +35,49 @@ class AlphaPlayer(Player):
 		if playable_index >= 0:
 			return Play(playable_index)
 
-		# Otherwise try to clue
 		if self.board_view.get_clue_count() > 0:
+			#prefer to clue next player
+			player_rotation = [i%self.num_players for i in range(self.pid+1, self.num_players+self.pid)]
 			clue = PlayerModel.find_new_bluff_or_finesse_clue_to_give(self.pid, self.board_view, self.get_known_and_clued_cards())
 			if clue:
 				return clue
-			#prefer to clue next player
-			player_rotation = [i%self.num_players for i in range(self.pid+1, self.num_players+self.pid)]
+			# if player is in danger of discarding a non 5 danger card, try to clue ones to discard instead
+			for i in player_rotation:
+				clue = self.player_models[i].find_danger_clue(self.board_view)
+				if clue:
+					return clue
 			# Clue fives
 			for i in player_rotation:
-				clue = self.player_models[i].find_new_five_clue_to_give(1)
+				clue = self.player_models[i].find_new_five_clue_to_give(1, self.board_view)
 				if clue:
 					return clue
 			# Clue playable cards
+			candidate_clues = []
 			for i in player_rotation:
 				clue = self.player_models[i].find_new_play_clue_to_give(self.board_view, self.get_known_and_clued_cards())
 				if clue:
+					# Don't clue the first card in someone's hand if you're not the prior player. Leave room for a bluff or finesse!
+					if 0 in clue.get_card_indice_set() and (self.pid+1)%self.num_players != clue.get_target_player_index():
+						continue
+					candidate_clues.append(clue)
+			for clue in candidate_clues:
+				clued_index = min(clue.get_card_indice_set())
+				# prioritize danger cards
+				if self.player_models[clue.get_target_player_index()].is_danger_card(clued_index):
 					return clue
+			if candidate_clues:
+				return candidate_clues[0]
+			# for i in range(len(candidate_clues)):
+			# 	clue = candidate_clues[i]
+			# 	clued_index = min(clue.get_card_indice_set())
+			# 	is_danger = self.player_models[clue.get_target_player_index()].is_danger_card(clued_index)
+			# 	# prioritize danger cards, then prioritize cluing cards that may get discarded.
+			# 	sort_criteria.append((is_danger, clued_index, i))
+			# sort_criteria.sort()
+			# if candidate_clues:
+			# 	i = sort_criteria[-1][2]
+			# 	return candidate_clues[i]
+
 			
 		# Otherwise discard
 		discard_index = self.player_models[self.pid].get_discard_index(self.board_view)

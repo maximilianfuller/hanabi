@@ -44,6 +44,7 @@ class TestBoard(unittest.TestCase):
 		self.assertTrue(board.process_move(Play(0)))
 		self.assertEqual(board.get_life_count(), 0)
 		self.assertTrue(board.is_game_over())
+		self.assertEqual(board.get_played_and_discarded_cards(), [C("G5"), C("G4"), C("B4")])
 
 	def test_win_condition(self):
 		# Create a deck such that last card in every players hand is always playable.
@@ -254,6 +255,7 @@ class TestBoard(unittest.TestCase):
 		self.assertEqual(board_view.get_last_action(), (None, None, None, None, False))
 		self.assertEqual(board_view.get_second_to_last_action(), (None, None, None, None, False))
 		self.assertEqual(board_view.get_played_cards(), {Color.RED: None, Color.WHITE: None, Color.BLUE: None, Color.GREEN: None, Color.YELLOW: None})
+		self.assertEqual(board_view.get_played_and_discarded_cards(), [])
 
 	def test_board_view_cheater(self):
 		board = Board(Deck(), 3)

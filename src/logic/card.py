@@ -28,7 +28,7 @@ class Card:
 		return self._number
 
 	def __hash__(self):
-		return hash((self.get_color(), self.get_number()))
+		return 5*(self._color.value-1) + self._number.value-1
 
 	def __eq__(self, other):
 		return  self.get_color() == other.get_color() and self.get_number() == other.get_number()

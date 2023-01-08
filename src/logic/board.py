@@ -1,6 +1,7 @@
 from logic.move import *
-from logic.deck import Deck
+from logic.deck import *
 from collections import Counter
+from functools import lru_cache
 import copy
 
 STARTING_CARDS_FOR_PLAYERS = {2: 5, 3: 5, 4: 4, 5: 4}
@@ -122,6 +123,10 @@ class Board():
 
 	# Returns the set of cards that if discarded would result in the game being unwinnable.
 	def get_danger_cards(self):
+		return self._get_danger_cards(len(self._moves))
+
+	@lru_cache
+	def _get_danger_cards(self, move_number):
 		out = set()
 		out.add(Card(Color.RED, Number.FIVE))
 		out.add(Card(Color.WHITE, Number.FIVE))
@@ -130,7 +135,8 @@ class Board():
 		out.add(Card(Color.GREEN, Number.FIVE))
 
 		# Add candidate danger cards
-		for c, count in Counter(self._played_and_discarded_cards).items():
+		played_and_discarded = Counter(self._played_and_discarded_cards)
+		for c, count in played_and_discarded.items():
 			if c.get_number() == Number.ONE:
 				if count == 2:
 					out.add(c)
@@ -146,11 +152,10 @@ class Board():
 				if c in out:
 					out.remove(c)
 		# Remove hopeless cards
-		normal_deck_dist = Counter(Deck.get_new_sorted_cards())
-		for c, count in Counter(self._played_and_discarded_cards).items():
+		for c, count in played_and_discarded.items():
 			played_number = self._played_cards[c.get_color()]
 			is_played = played_number and played_number.value >= c.get_number().value
-			is_exhausted = normal_deck_dist[c] == count
+			is_exhausted = CARD_COUNTS[c.get_number()] == count
 			if not is_played and is_exhausted:
 				# Remove higher cards of the same color since they are hopeless
 				for i in range(c.get_number().value, 6):
@@ -177,6 +182,9 @@ class Board():
 				if count == 1:
 					out.add(c)
 		return out
+
+	def get_played_and_discarded_cards(self):
+		return self._played_and_discarded_cards.copy()
 
 	def __validate_move(self, move):
 		if not move:
@@ -241,9 +249,18 @@ class Board():
 		
 	def __str__(self):
 		out = ""
+		danger_cards = self.get_danger_cards()
+		def card_to_string(card):
+			if self.is_trash(card):
+				return f' {card}^'
+			if self.is_playable(card):
+				return f' {card}$'
+			if card in danger_cards:
+				return f' {card}!'
+			return f' {card} '
 		for i in range(self._player_count):
 			if i in self._hands:
-				out += f'Player {i}: {[str(c) for c in self._hands[i]]}\n'
+				out += f'Player {i}: [{",".join([card_to_string(c) for c in self._hands[i]])}]\n'
 		readable_played_cards = [str(Card(k, v)) for k, v in self._played_cards.items() if v]
 		out += (
 			f'Board: {readable_played_cards}\n'
@@ -252,7 +269,7 @@ class Board():
 		    f'Lives: {self._life_count}\n'
 		    f'Discards: {len([m for m in self._moves if isinstance(m, Discard)])}\n'
 		    f'Score: {self.get_score()}\n'
-			f'Danger Cards: {[str(c) for c in self.get_danger_cards() if c.get_number() != Number.FIVE]}\n'
+			f'Danger Cards: {[str(c) for c in danger_cards if c.get_number() != Number.FIVE]}\n'
 			f'Hopeless Cards: {[str(c) for c in self.get_hopeless_cards()]}'
 
 		)
@@ -317,4 +334,7 @@ class BoardView():
 
 	def get_played_cards(self):
 		return self._board.get_played_cards()
+
+	def get_played_and_discarded_cards(self):
+		return self._board.get_played_and_discarded_cards()
 		
