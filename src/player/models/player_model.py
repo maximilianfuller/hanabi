@@ -1,10 +1,12 @@
 from logic.move import *
+from collections import Counter
+from logic.deck import CARD_COUNTS
 
 # Model for keeping track what a player should know. The left most card (and only the left most) in a 'play' clue is meant to be played.
 class PlayerModel():
 	def __init__(self, pid, hand):
 		self._pid = pid
-		self._hand = [CardModel(c) for c in hand]
+		self._hand = [CardModel(c, pid) for c in hand]
 
 	def process_update(self, board_view, previous_oob_card):
 		# new_draw will be None if this the player's model
@@ -37,8 +39,7 @@ class PlayerModel():
 		                if m.public_card_knowledge.number == Number.FIVE:
 		                        m.public_card_knowledge.color = unfinished_colors[0]
 
-
-		# self._maybe_infer_fives(board_view)
+		self._maybe_infer_fives(board_view)
 		
 	def _maybe_process_finessed_play(self, board_view, previous_oob_card):
 		if previous_oob_card:
@@ -62,7 +63,7 @@ class PlayerModel():
 			del self._hand[removed_card_index]
 			if not is_final_round:
 				# insert None new draws for unknown hands
-				self._hand.insert(0, CardModel(new_draw))
+				self._hand.insert(0, CardModel(new_draw, self._pid))
 
 	def _maybe_process_five_clue(self, clue, board_view, pid):
 		if self._pid != clue.get_target_player_index():
@@ -118,12 +119,17 @@ class PlayerModel():
 	def _get_cards(self):
 		return [m.card for m in self._hand]
 
-	# def _maybe_infer_fives(self, board_view):
-	# 	for model in self._hand:
-	# 		if model.public_card_knowledge.number == Number.FIVE and not model.public_card_knowledge.maybe_get_card():
-	# 			possible_cards = model.infer_card_set_from_visible_cards(board_view)
-	# 			if len(possible_cards) == 1:
-	# 				i 
+	def _maybe_infer_fives(self, board_view):
+		for model in self._hand:
+			if model.public_card_knowledge.number != Number.FIVE:
+				continue
+			if model.public_card_knowledge.maybe_get_card() or model.private_card_knowledge.maybe_get_card():
+				continue
+			possible_cards = model.infer_card_set_from_visible_cards(board_view)
+			if len(possible_cards) == 1:
+				known_five = list(possible_cards)[0]
+				model.private_card_knowledge.color = known_five.get_color()
+				model.private_card_knowledge.number = known_five.get_number()
 
 
 	# Gets a play clue that hasn't already been clued. If there are none, returns None.
@@ -215,16 +221,23 @@ class PlayerModel():
 		playable_indices = [i for i in range(len(self._hand)) if
 			self._hand[i].directly_clued or 
 			self._hand[i].is_finessed or
-			board_view.is_playable(self._hand[i].public_card_knowledge.maybe_get_card())]
+			board_view.is_playable(self._hand[i].public_card_knowledge.maybe_get_card()) or
+			board_view.is_playable(self._hand[i].private_card_knowledge.maybe_get_card())]
 		return playable_indices[0] if playable_indices else -1
 
-	# Return whether or not there is normal reason to play the card at index playable_index
+	# Return whether or not there is normal reason to play the card at index playable_index, or it was played 'out of the blue'
 	def is_oob(self, playable_index, board_view):
 		if playable_index < 0:
 			return None
 		model = self._hand[playable_index]
-		out = not model.directly_clued and not model.public_card_knowledge.maybe_get_card()
-		return out
+		if model.directly_clued:
+			return False
+		if model.public_card_knowledge.maybe_get_card():
+			return False
+		# Some times we infer fives and they appear to be played out of the blue
+		if model.public_card_knowledge.number == Number.FIVE:
+			return False
+		return True
 
 	# gets the index of the next card to discard. Discards from the right and avoids fives, and discards trash cards if they are known.
 	def get_discard_index(self, board_view):
@@ -285,8 +298,9 @@ class PlayerModel():
 
 # Simple card model for tracking card playability and fives
 class CardModel():
-	def __init__(self, card):
+	def __init__(self, card, pid):
 		self.card = card
+		self.pid = pid
 		self.directly_clued = False
 		self.is_danger = False
 		self.public_card_knowledge = CardKnowledge()
@@ -304,22 +318,23 @@ class CardModel():
 			return True
 		return False
 
-	# def infer_card_set_from_visible_cards(board_view):
-	# 	visible_cards = board_view.get_played_and_discarded_cards()
-	# 	for pid, cards in board_view.get_hands().items():
-	# 		visible_cards.extend(cards)
-	# 	visible_card_counter = Counter(visible_cards)
-	# 	candidates = Card.get_set_of_all_cards()
-	# 	color = self.public_card_knowledge.color
-	# 	number = self.public_card_knowledge.number
-	# 	candidates = set([c for c in candidates if c.get_color() == color])
-	# 	candidates = set([c for c in candidates if c.get_number() == number])
-	# 	candidates = set([c for c in candidates if visible_card_counter[c] < Deck.CARD_COUNTS[c.get_number()]])
-	# 	return candidates
+	def infer_card_set_from_visible_cards(self, board_view):
+		visible_cards = board_view.get_played_and_discarded_cards()
+		for pid, cards in board_view.get_hands().items():
+			if pid != self.pid:
+				visible_cards.extend(cards)
+		visible_card_counter = Counter(visible_cards)
+		candidates = Card.get_set_of_all_cards()
+		color = self.public_card_knowledge.color
+		number = self.public_card_knowledge.number
+		candidates = set([c for c in candidates if not color or c.get_color() == color])
+		candidates = set([c for c in candidates if not number or c.get_number() == number])
+		candidates = set([c for c in candidates if visible_card_counter[c] < CARD_COUNTS[c.get_number()]])
+		return candidates
 
 	def __str__(self):
 		private_card = self.private_card_knowledge.maybe_get_card()
-		private_card_knowledge_string = f'({private_card})' if private_card else ""
+		private_card_knowledge_string = f'[{private_card}])' if private_card else ""
 		return f'{self.public_card_knowledge}{private_card_knowledge_string}{"C" if self.directly_clued else ""}{"F" if self.is_finessed else ""}{"D" if self.is_danger else ""}'
 
 # Color or number properties known about a card
