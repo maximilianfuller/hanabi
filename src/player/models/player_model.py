@@ -173,7 +173,7 @@ class PlayerModel():
 			return None
 		if first_card_of_next_player in known_and_clued_cards:
 			return None
-		# This clue was a five clue, not a finesse clue
+		# This card can't be finessed
 		if first_card_of_next_player.get_number() == Number.FIVE:
 			return None
 		# look for 'the board +2' in the last player
@@ -191,9 +191,11 @@ class PlayerModel():
 					return clue
 				# bluffs can't clue number	
 				if not is_bluff:
-					clue = Clue.maybe_get_number_clue_if_left_most(hand, i, last_player)
-					if clue: 
-						return clue
+					# Giving a FIVE clue is reserved as a danger clues
+					if first_card_of_next_player.get_number() != Number.FOUR:
+						clue = Clue.maybe_get_number_clue_if_left_most(hand, i, last_player)
+						if clue: 
+							return clue
 
 	# Gets a five clue that hasn't already been clued. If there are none, returns None.
 	def find_new_five_clue_to_give(self, clue_last_n, board_view):
@@ -317,7 +319,7 @@ class CardModel():
 
 	def __str__(self):
 		private_card = self.private_card_knowledge.maybe_get_card()
-		private_card_knowledge_string = f'({private_card})' if private_card else "    "
+		private_card_knowledge_string = f'({private_card})' if private_card else ""
 		return f'{self.public_card_knowledge}{private_card_knowledge_string}{"C" if self.directly_clued else ""}{"F" if self.is_finessed else ""}{"D" if self.is_danger else ""}'
 
 # Color or number properties known about a card
