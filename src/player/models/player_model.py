@@ -23,22 +23,8 @@ class PlayerModel():
 			self._maybe_process_five_clue(move, board_view, pid)			
 			self._maybe_process_direct_clue(move, board_view, pid)	
 			self._remember_clue(move, pid)
-			clued_on_trash = False
-			for i in range(len(self._hand)):
-				if self._hand[i].is_trash(board_view) and self._hand[i].directly_clued:
-					clued_on_trash = True
-					self._hand[i].directly_clued = False
-			if clued_on_trash:
-				danger_index = self._get_index_of_next_discard()
-				self._hand[danger_index].is_danger = True
-
-		# infer last five (cheap inference until more robust inference is built)
-		unfinished_colors = [color for color, number in board_view.get_played_cards().items() if number != Number.FIVE]
-		if len(unfinished_colors) == 1:
-		        for m in self._hand:
-		                if m.public_card_knowledge.number == Number.FIVE:
-		                        m.public_card_knowledge.color = unfinished_colors[0]
-
+			self._check_if_direct_clue_was_trash_and_mark_last_card_as_danger(board_view)
+			
 		self._maybe_infer_fives(board_view)
 		
 	def _maybe_process_finessed_play(self, board_view, previous_oob_card):
@@ -85,6 +71,16 @@ class PlayerModel():
 			leftmost = min(clue.get_card_indice_set())
 			self._hand[leftmost].directly_clued = True
 
+	def _check_if_direct_clue_was_trash_and_mark_last_card_as_danger(self, board_view):
+		clued_on_trash = False
+		for i in range(len(self._hand)):
+			if self._hand[i].is_trash(board_view) and self._hand[i].directly_clued:
+				clued_on_trash = True
+				self._hand[i].directly_clued = False
+		if clued_on_trash:
+			danger_index = self._get_index_of_next_discard()
+			self._hand[danger_index].is_danger = True
+
 	def _maybe_process_finesse_clue(self, clue, board_view, pid):
 		n = board_view.get_player_count()
 		previous_player_issued_clue = self._pid == (pid+1)%n
@@ -125,7 +121,7 @@ class PlayerModel():
 				continue
 			if model.public_card_knowledge.maybe_get_card() or model.private_card_knowledge.maybe_get_card():
 				continue
-			possible_cards = model.infer_card_set_from_visible_cards(board_view)
+			possible_cards = model.infer_possible_card_set_from_known_cards(board_view, self._hand)
 			if len(possible_cards) == 1:
 				known_five = list(possible_cards)[0]
 				model.private_card_knowledge.color = known_five.get_color()
@@ -318,23 +314,24 @@ class CardModel():
 			return True
 		return False
 
-	def infer_card_set_from_visible_cards(self, board_view):
+	def infer_possible_card_set_from_known_cards(self, board_view, all_card_models):
 		visible_cards = board_view.get_played_and_discarded_cards()
+		known_cards_in_hand = [m.public_card_knowledge.maybe_get_card() for m in all_card_models if m.public_card_knowledge.maybe_get_card()]
 		for pid, cards in board_view.get_hands().items():
 			if pid != self.pid:
 				visible_cards.extend(cards)
-		visible_card_counter = Counter(visible_cards)
+		known_card_counter = Counter(visible_cards + known_cards_in_hand)
 		candidates = Card.get_set_of_all_cards()
 		color = self.public_card_knowledge.color
 		number = self.public_card_knowledge.number
 		candidates = set([c for c in candidates if not color or c.get_color() == color])
 		candidates = set([c for c in candidates if not number or c.get_number() == number])
-		candidates = set([c for c in candidates if visible_card_counter[c] < CARD_COUNTS[c.get_number()]])
+		candidates = set([c for c in candidates if known_card_counter[c] < CARD_COUNTS[c.get_number()]])
 		return candidates
 
 	def __str__(self):
 		private_card = self.private_card_knowledge.maybe_get_card()
-		private_card_knowledge_string = f'[{private_card}])' if private_card else ""
+		private_card_knowledge_string = f'[{private_card}]' if private_card else ""
 		return f'{self.public_card_knowledge}{private_card_knowledge_string}{"C" if self.directly_clued else ""}{"F" if self.is_finessed else ""}{"D" if self.is_danger else ""}'
 
 # Color or number properties known about a card
