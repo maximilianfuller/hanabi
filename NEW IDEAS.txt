@@ -1,0 +1,22 @@
+NEW IDEAS
+
+
+in endgame give throwaway clue instead of discarding(++)
+don't give clues that lead to discard of danger card (+)
+look ahead to preven discard danger scenario [HARD] (++)
+consider finesse before play
+clue for even dist of plays in endgame
+better inference on danger cards
+
+
++ means found example
+
+
+
+
+better inference on fives [Helps 30%]
+prefer cluing older cards (ones about to be discarded) [DOESN'T SEEM TO HELP]
+prefer playing fives [DOESN't SEEM TO HELP]
+clue fives earlier [doesn't seem to help]
+
+
